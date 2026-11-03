@@ -39,7 +39,14 @@ export const initSocket = (io) => {
       const { mood, note, username, displayName } = data;
       console.log(`Mood sync: ${displayName} is now ${mood}`);
 
-      // Broadcast to partner
+      // Broadcast to partner across both room and broadcast channels
+      socket.broadcast.emit('partner_mood_changed', {
+        username,
+        displayName,
+        mood,
+        note,
+        timestamp: new Date(),
+      });
       socket.to('couple_space').emit('partner_mood_changed', {
         username,
         displayName,

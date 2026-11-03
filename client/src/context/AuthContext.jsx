@@ -9,9 +9,21 @@ export const AuthProvider = ({ children }) => {
   const [partnerOnline, setPartnerOnline] = useState(false);
   const [sessionDaysRemaining, setSessionDaysRemaining] = useState(30);
   const [sessionExpiresAt, setSessionExpiresAt] = useState(null);
-  const [activeMoodTheme, setActiveMoodTheme] = useState('happy');
+  const [activeMoodTheme, setActiveMoodThemeState] = useState(() => {
+    return localStorage.getItem('ashis_kirti_active_mood') || 'happy';
+  });
   const [currentPage, setCurrentPage] = useState('dashboard'); // 'dashboard' | 'whatsapp'
   const [isLoading, setIsLoading] = useState(true);
+
+  const setActiveMoodTheme = (mood) => {
+    if (!mood) return;
+    try {
+      localStorage.setItem('ashis_kirti_active_mood', mood);
+    } catch (e) {
+      // ignore
+    }
+    setActiveMoodThemeState(mood);
+  };
 
   // Synchronize 'dark' class on document.documentElement with mood for 100% reliable contrast
   useEffect(() => {
@@ -58,11 +70,19 @@ export const AuthProvider = ({ children }) => {
         setSessionDaysRemaining(res.data.user.sessionDaysRemaining ?? 30);
         setSessionExpiresAt(res.data.user.sessionExpiresAt);
 
-        // Prioritize sad or gussa mood if partner is feeling low, otherwise user mood
-        const primaryMood = res.data.partner?.currentMood === 'sad' || res.data.partner?.currentMood === 'gussa'
-          ? res.data.partner.currentMood
-          : res.data.user.currentMood || 'happy';
-        setActiveMoodTheme(primaryMood);
+        // Compute the latest active mood between Ashis and Kirti based on most recent update timestamp
+        const userTime = res.data.user?.lastMoodUpdate ? new Date(res.data.user.lastMoodUpdate).getTime() : 0;
+        const partnerTime = res.data.partner?.lastMoodUpdate ? new Date(res.data.partner.lastMoodUpdate).getTime() : 0;
+
+        let activeMood = 'happy';
+        if (userTime || partnerTime) {
+          activeMood = userTime >= partnerTime
+            ? (res.data.user?.currentMood || 'happy')
+            : (res.data.partner?.currentMood || 'happy');
+        } else {
+          activeMood = res.data.user?.currentMood || res.data.partner?.currentMood || 'happy';
+        }
+        setActiveMoodTheme(activeMood);
       } else {
         setUser(null);
         setPartner(null);
@@ -94,10 +114,17 @@ export const AuthProvider = ({ children }) => {
       setUser(res.data.user);
       setPartner(res.data.partner);
       setSessionDaysRemaining(res.data.user.sessionDaysRemaining ?? 30);
-      const primaryMood = res.data.partner?.currentMood === 'sad' || res.data.partner?.currentMood === 'gussa'
-        ? res.data.partner.currentMood
-        : res.data.user.currentMood || 'happy';
-      setActiveMoodTheme(primaryMood);
+      const userTime = res.data.user?.lastMoodUpdate ? new Date(res.data.user.lastMoodUpdate).getTime() : 0;
+      const partnerTime = res.data.partner?.lastMoodUpdate ? new Date(res.data.partner.lastMoodUpdate).getTime() : 0;
+      let activeMood = 'happy';
+      if (userTime || partnerTime) {
+        activeMood = userTime >= partnerTime
+          ? (res.data.user?.currentMood || 'happy')
+          : (res.data.partner?.currentMood || 'happy');
+      } else {
+        activeMood = res.data.user?.currentMood || res.data.partner?.currentMood || 'happy';
+      }
+      setActiveMoodTheme(activeMood);
       return res.data;
     }
     throw new Error(res.data.message || 'Login failed');
@@ -116,18 +143,25 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateCurrentUserMood = (mood) => {
-    if (user) {
-      setUser((prev) => ({ ...prev, currentMood: mood }));
-    }
-    // Update whole app theme on own side!
+    const now = new Date().toISOString();
+    setUser((prev) => (prev ? { ...prev, currentMood: mood, lastMoodUpdate: now } : prev));
+    // Instantly transform whole app theme on own side!
     setActiveMoodTheme(mood);
   };
 
   const updatePartnerMood = (mood, note) => {
-    if (partner) {
-      setPartner((prev) => ({ ...prev, currentMood: mood, customStatus: note || prev?.customStatus }));
-    }
-    // Update whole app theme on partner's side in real-time over Socket!
+    const now = new Date().toISOString();
+    setPartner((prev) =>
+      prev
+        ? {
+            ...prev,
+            currentMood: mood,
+            customStatus: note || prev?.customStatus,
+            lastMoodUpdate: now,
+          }
+        : prev
+    );
+    // Instantly transform whole app theme on partner's side in real-time!
     setActiveMoodTheme(mood);
   };
 

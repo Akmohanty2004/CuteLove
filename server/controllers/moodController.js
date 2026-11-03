@@ -41,6 +41,16 @@ export const updateMood = async (req, res) => {
     // Notify partner via Socket.IO
     const io = req.app.get('io');
     if (io) {
+      // 1. Direct partner mood changed broadcast to all connected couple clients
+      io.emit('partner_mood_changed', {
+        username: user.username,
+        displayName: user.displayName,
+        mood,
+        note: note.trim(),
+        timestamp: user.lastMoodUpdate,
+      });
+
+      // 2. Full payload broadcast
       io.emit('mood_updated', {
         user: {
           id: user._id,
@@ -51,6 +61,25 @@ export const updateMood = async (req, res) => {
         },
         moodLog,
       });
+
+      // 3. Cheer Up Alert banner trigger if sad or gussa
+      if (mood === 'sad' || mood === 'gussa') {
+        const partnerName = user.username.toLowerCase() === 'ashis' ? 'Kirti' : 'Ashis';
+        const partnerUser = user.username.toLowerCase() === 'ashis' ? 'kirti' : 'ashis';
+        const bannerMessage = mood === 'sad'
+          ? `Hello ${partnerName}, ${user.displayName} is feeling sad. Go send some warm love and cheer ${user.displayName === 'Ashis' ? 'him' : 'her'} up! 🥺❤️`
+          : `Hello ${partnerName}, ${user.displayName} is feeling gussa! Go melt ${user.displayName === 'Ashis' ? 'his' : 'her'} heart with extra cuddles! 😤💕`;
+
+        io.emit('cheer_up_alert', {
+          fromUser: user.username,
+          fromDisplayName: user.displayName,
+          targetUser: partnerUser,
+          targetDisplayName: partnerName,
+          mood,
+          message: bannerMessage,
+          timestamp: new Date(),
+        });
+      }
     }
 
     return res.status(200).json({

@@ -57,11 +57,24 @@ export const SocketProvider = ({ children }) => {
     });
 
     // Partner mood updates
-    socket.on('partner_mood_changed', ({ displayName, mood, note }) => {
-      updatePartnerMood(mood, note);
-      // Invalidate TanStack query cache for immediate high-speed chart & status re-render!
+    socket.on('partner_mood_changed', ({ displayName, mood, note, username }) => {
+      if (!username || username.toLowerCase() !== user?.username?.toLowerCase()) {
+        updatePartnerMood(mood, note);
+      }
       queryClient.invalidateQueries({ queryKey: ['moodTimeline'] });
       queryClient.invalidateQueries({ queryKey: ['currentMoods'] });
+    });
+
+    socket.on('mood_updated', (data) => {
+      if (data?.user) {
+        if (data.user.username?.toLowerCase() !== user?.username?.toLowerCase()) {
+          updatePartnerMood(data.user.mood, data.moodLog?.note);
+        } else {
+          updateCurrentUserMood(data.user.mood);
+        }
+        queryClient.invalidateQueries({ queryKey: ['moodTimeline'] });
+        queryClient.invalidateQueries({ queryKey: ['currentMoods'] });
+      }
     });
 
     // Cheer Up Alert banner trigger (when partner is sad or gussa)
