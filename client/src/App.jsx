@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { WelcomeScreen } from './components/WelcomeScreen';
+import { EmojiSprinkler } from './components/EmojiSprinkler';
+import { ChatNotificationToast } from './components/ChatNotificationToast';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { WhatsAppChatPage } from './pages/WhatsAppChatPage';
@@ -14,6 +16,12 @@ export const App = () => {
 
   return (
     <div className="relative min-h-screen bg-rose-50/30">
+      {/* Global Emoji Sprinkler (Hug, Kiss, Sparkle, Heart animations) */}
+      <EmojiSprinkler />
+
+      {/* Global In-App Chat Notification Toast Banner */}
+      <ChatNotificationToast />
+
       {/* Full-Screen Animated Welcome Overlay with AnimatePresence */}
       <AnimatePresence>
         {showWelcome && (

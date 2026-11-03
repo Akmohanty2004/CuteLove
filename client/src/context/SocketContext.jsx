@@ -2,6 +2,57 @@ import React, { createContext, useContext, useEffect, useState, useRef } from 'r
 import { io } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './AuthContext';
+import { triggerSprinklerEffect } from '../components/EmojiSprinkler';
+
+const playNotificationTone = () => {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(698.46, now); // F5
+    osc1.frequency.exponentialRampToValueAtTime(880, now + 0.12); // A5
+
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(880, now + 0.08); // A5
+    osc2.frequency.exponentialRampToValueAtTime(1046.5, now + 0.25); // C6
+
+    gainNode.gain.setValueAtTime(0.2, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+    osc1.connect(gainNode);
+    osc2.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    osc1.start(now);
+    osc2.start(now + 0.08);
+    osc1.stop(now + 0.35);
+    osc2.stop(now + 0.55);
+  } catch (e) {
+    // Audio context may be restricted
+  }
+};
+
+const triggerNativeNotification = (title, body) => {
+  try {
+    if ('Notification' in window) {
+      if (Notification.permission === 'granted') {
+        new Notification(title, {
+          body,
+          icon: '/heart.svg',
+          badge: '/heart.svg',
+        });
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission();
+      }
+    }
+  } catch (e) {
+    // notification not permitted
+  }
+};
 
 const SocketContext = createContext(null);
 
@@ -12,6 +63,7 @@ export const SocketProvider = ({ children }) => {
 
   const [cheerUpAlert, setCheerUpAlert] = useState(null);
   const [incomingReaction, setIncomingReaction] = useState(null);
+  const [newChatNotification, setNewChatNotification] = useState(null);
   const [partnerTyping, setPartnerTyping] = useState(false);
   const [chatPartnerTyping, setChatPartnerTyping] = useState(false);
 
@@ -82,9 +134,12 @@ export const SocketProvider = ({ children }) => {
       setCheerUpAlert(alertData);
     });
 
-    // Reaction received (hug, kiss, heart)
+    // Reaction received (hug, kiss, sparkles, heart, fire)
     socket.on('reaction_received', (reactionData) => {
       setIncomingReaction(reactionData);
+      if (reactionData?.type) {
+        triggerSprinklerEffect(reactionData.type);
+      }
     });
 
     // Partner typing note
@@ -125,13 +180,42 @@ export const SocketProvider = ({ children }) => {
       queryClient.invalidateQueries({ queryKey: ['stickyNotes'] });
     });
 
-    // Real-time Chat cache & instant delivery
-    socket.on('new_message', () => {
+    // Real-time Chat cache & instant notification delivery
+    socket.on('new_message', (payload) => {
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
+      const msg = payload?.message || payload;
+      if (
+        msg &&
+        msg.senderName &&
+        user &&
+        msg.senderName.toLowerCase() !== user.displayName?.toLowerCase() &&
+        msg.senderName.toLowerCase() !== user.username?.toLowerCase()
+      ) {
+        playNotificationTone();
+        triggerNativeNotification(
+          `New message from ${msg.senderName} ❤️`,
+          msg.text || 'Sent you something sweet 💕'
+        );
+        setNewChatNotification(msg);
+      }
     });
 
-    socket.on('incoming_chat_message', () => {
+    socket.on('incoming_chat_message', (data) => {
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
+      if (
+        data &&
+        data.senderName &&
+        user &&
+        data.senderName.toLowerCase() !== user.displayName?.toLowerCase() &&
+        data.senderName.toLowerCase() !== user.username?.toLowerCase()
+      ) {
+        playNotificationTone();
+        triggerNativeNotification(
+          `New message from ${data.senderName} ❤️`,
+          data.text || 'Sent you something sweet 💕'
+        );
+        setNewChatNotification(data);
+      }
     });
 
     socket.on('partner_chat_typing', ({ isTyping }) => {
@@ -190,6 +274,7 @@ export const SocketProvider = ({ children }) => {
 
   const dismissCheerUpAlert = () => setCheerUpAlert(null);
   const clearIncomingReaction = () => setIncomingReaction(null);
+  const clearNewChatNotification = () => setNewChatNotification(null);
 
   return (
     <SocketContext.Provider
@@ -197,6 +282,8 @@ export const SocketProvider = ({ children }) => {
         socket: socketRef.current,
         cheerUpAlert,
         incomingReaction,
+        newChatNotification,
+        clearNewChatNotification,
         partnerTyping,
         chatPartnerTyping,
         emitMoodUpdate,

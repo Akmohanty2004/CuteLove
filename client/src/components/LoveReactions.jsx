@@ -32,6 +32,8 @@ export const LoveReactions = () => {
     kiss: '💋',
     heart: '💖',
     sparkle: '✨',
+    sparkles: '✨',
+    fire: '🔥',
   };
 
   const emoji = reactionEmojis[incomingReaction.type] || '❤️';

@@ -24,6 +24,7 @@ import api from '../api/axiosClient';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { playMoodAmbience, stopAmbience } from '../utils/ambientAudio';
+import { triggerSprinklerEffect } from '../components/EmojiSprinkler';
 import confetti from 'canvas-confetti';
 
 const QUICK_BURSTS = [
@@ -312,14 +313,27 @@ export const WhatsAppChatPage = ({ onBack }) => {
     emitChatTyping(e.target.value.length > 0);
   };
 
+  const REACTION_MESSAGES = {
+    hug: 'Sending you a warm loving hug 🤗🧸💛',
+    kiss: 'Sending you sweet kisses 💋😘🌹',
+    sparkles: 'Thinking of you with starlight sparkles ✨⭐💫',
+    heart: 'Sending infinite love hearts 💖❤️💕',
+    fire: 'You set my heart on fire 🔥❤️‍🔥✨',
+  };
+
   const handleSendQuick = (burst) => {
     handleSend(burst);
-    confetti({
-      particleCount: 25,
-      spread: 50,
-      origin: { y: 0.8 },
-      colors: ['#f43f5e', '#fb7185', '#fbbf24', '#34d399', '#38bdf8'],
-    });
+    if (burst.includes('🤗') || burst.toLowerCase().includes('hug')) {
+      triggerSprinklerEffect('hug');
+    } else if (burst.includes('💋') || burst.toLowerCase().includes('kiss')) {
+      triggerSprinklerEffect('kiss');
+    } else if (burst.includes('✨') || burst.toLowerCase().includes('think')) {
+      triggerSprinklerEffect('sparkles');
+    } else if (burst.includes('🔥') || burst.toLowerCase().includes('melt')) {
+      triggerSprinklerEffect('fire');
+    } else {
+      triggerSprinklerEffect('heart');
+    }
   };
 
   const handleAddEmoji = (emoji) => {
@@ -329,14 +343,17 @@ export const WhatsAppChatPage = ({ onBack }) => {
     }, 20);
   };
 
-  const handleSendReaction = (type, label) => {
-    emitReaction(type, `Sent from ${chatTheme.name} Chat Space with all my heart! ❤️`);
-    confetti({
-      particleCount: 40,
-      spread: 60,
-      origin: { y: 0.5 },
-      colors: ['#f43f5e', '#fb7185', '#fbbf24', '#34d399', '#ec4899'],
-    });
+  const handleSendReaction = (type, customLabel) => {
+    const reactionText = REACTION_MESSAGES[type] || `Sent you love ${customLabel || 'reaction'} 💕`;
+
+    // 1. Trigger sprinkler shower on current screen
+    triggerSprinklerEffect(type);
+
+    // 2. Broadcast reaction event to partner so it sprinkles on their screen too
+    emitReaction(type, reactionText);
+
+    // 3. Show in the chatting section stream
+    handleSend(reactionText);
   };
 
   const toggleAmbience = () => {
@@ -664,66 +681,67 @@ export const WhatsAppChatPage = ({ onBack }) => {
               </div>
             </div>
 
-            {/* Right Header Action Icons (CALLS REMOVED, ROMANTIC REACTIONS ADDED) */}
-            <div className="flex items-center gap-1 sm:gap-2">
+            {/* Right Header Action Icons (ROMANTIC SPRINKLER REACTIONS) */}
+            <div className="flex items-center gap-1 sm:gap-1.5">
               {/* Instant Hug Reaction */}
               <motion.button
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.15 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => handleSendReaction('hug', 'Hug')}
-                title="Send a Warm Hug reaction"
-                className="px-2.5 sm:px-3 py-1.5 rounded-full bg-rose-500/15 hover:bg-rose-500/25 text-rose-500 border border-rose-500/25 text-xs font-bold cursor-pointer transition-colors flex items-center gap-1 shadow-xs"
+                title="Send Warm Hug Sprinkler Shower"
+                className="w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-500 border border-amber-500/25 text-xs font-bold cursor-pointer transition-all flex items-center justify-center gap-1 shadow-xs"
               >
-                <span>🤗</span>
+                <span className="text-sm sm:text-base leading-none">🤗</span>
                 <span className="hidden sm:inline">Hug</span>
               </motion.button>
 
               {/* Instant Kiss Reaction */}
               <motion.button
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.15 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => handleSendReaction('kiss', 'Kiss')}
-                title="Send a Sweet Kiss reaction"
-                className="px-2.5 sm:px-3 py-1.5 rounded-full bg-pink-500/15 hover:bg-pink-500/25 text-pink-500 border border-pink-500/25 text-xs font-bold cursor-pointer transition-colors flex items-center gap-1 shadow-xs"
+                title="Send Sweet Kisses Sprinkler Shower"
+                className="w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-full bg-pink-500/15 hover:bg-pink-500/25 text-pink-500 border border-pink-500/25 text-xs font-bold cursor-pointer transition-all flex items-center justify-center gap-1 shadow-xs"
               >
-                <span>💋</span>
+                <span className="text-sm sm:text-base leading-none">💋</span>
                 <span className="hidden sm:inline">Kiss</span>
               </motion.button>
 
-              {/* Instant Love Burst Reaction */}
+              {/* Instant Sparkles Reaction */}
               <motion.button
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.15 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => {
-                  handleSendReaction('sparkles', 'Starlight Heart');
-                  confetti({ particleCount: 30, spread: 60 });
-                }}
-                title="Send Starlight Burst"
-                className="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-amber-400 cursor-pointer transition-colors"
+                onClick={() => handleSendReaction('sparkles', 'Starlight Sparkles')}
+                title="Send Starlight Sparkles Sprinkler Shower"
+                className="w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-full bg-yellow-400/15 hover:bg-yellow-400/25 text-yellow-500 border border-yellow-400/25 text-xs font-bold cursor-pointer transition-all flex items-center justify-center gap-1 shadow-xs"
               >
-                <Sparkles className="w-5 h-5 animate-spin-slow" />
+                <Sparkles className="w-4 h-4 text-amber-400 animate-spin-slow shrink-0" />
+                <span className="hidden sm:inline">Sparkle</span>
               </motion.button>
 
-              {/* Return to Sanctuary (Desktop) */}
+              {/* Instant Infinite Heart Reaction */}
+              <motion.button
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => handleSendReaction('heart', 'Love Hearts')}
+                title="Send Infinite Hearts Sprinkler Shower"
+                className="w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-full bg-rose-500/15 hover:bg-rose-500/25 text-rose-500 border border-rose-500/25 text-xs font-bold cursor-pointer transition-all flex items-center justify-center gap-1 shadow-xs"
+              >
+                <Heart className="w-4 h-4 text-rose-500 fill-rose-500 shrink-0" />
+                <span className="hidden sm:inline">Heart</span>
+              </motion.button>
+
+              {/* Return to Sanctuary Dashboard */}
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={onBack}
                 title="Back to Love Sanctuary Dashboard"
-                className={`ml-1 px-3 py-1.5 rounded-xl text-white font-bold text-xs shadow-sm cursor-pointer transition-all hidden sm:flex items-center gap-1 ${chatTheme.sendBtn}`}
+                className={`ml-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-white font-bold text-xs shadow-sm cursor-pointer transition-all flex items-center gap-1 ${chatTheme.sendBtn}`}
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Dashboard</span>
+                <span className="hidden sm:inline">Dashboard</span>
               </motion.button>
-
-              {/* Return to Sanctuary (Mobile Icon) */}
-              <button
-                onClick={onBack}
-                title="Back to Love Sanctuary Dashboard"
-                className={`sm:hidden p-2 rounded-full ${chatTheme.accentText} hover:bg-white/10 cursor-pointer ml-0.5`}
-              >
-                <Sparkles className="w-5 h-5" />
-              </button>
             </div>
           </div>
 
@@ -951,7 +969,10 @@ export const WhatsAppChatPage = ({ onBack }) => {
               {/* Quick Heart Button */}
               <button
                 type="button"
-                onClick={() => handleSend("I love you so much ❤️")}
+                onClick={() => {
+                  handleSend("I love you so much ❤️");
+                  triggerSprinklerEffect('heart');
+                }}
                 title="Send Quick Heart"
                 className="p-1.5 rounded-full text-rose-500 hover:text-rose-400 cursor-pointer shrink-0"
               >
