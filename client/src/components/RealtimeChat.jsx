@@ -46,8 +46,41 @@ export const RealtimeChat = ({ theme, onBackToFeed }) => {
   const [optimisticMessages, setOptimisticMessages] = useState([]);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+
+  // Dynamic viewport tracking for full-screen mode to prevent typing section from getting cut off
+  const [viewportHeight, setViewportHeight] = useState(() => {
+    if (typeof window !== 'undefined' && window.visualViewport) {
+      return window.visualViewport.height;
+    }
+    return typeof window !== 'undefined' ? window.innerHeight : 800;
+  });
+
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    const handleViewport = () => {
+      if (window.visualViewport) {
+        setViewportHeight(window.visualViewport.height);
+      } else {
+        setViewportHeight(window.innerHeight);
+      }
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewport);
+      window.visualViewport.addEventListener('scroll', handleViewport);
+    }
+    window.addEventListener('resize', handleViewport);
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleViewport);
+        window.visualViewport.removeEventListener('scroll', handleViewport);
+      }
+      window.removeEventListener('resize', handleViewport);
+    };
+  }, []);
 
   // TanStack Query for messages
   const { data: serverMessages = [], isLoading } = useQuery({
@@ -173,10 +206,11 @@ export const RealtimeChat = ({ theme, onBackToFeed }) => {
       layout
       initial={{ opacity: 0, scale: 0.99 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3 }}
-      className={`transition-all duration-700 flex flex-col ${
+      transition={{ duration: 0.25 }}
+      style={isFullScreen ? { height: `${viewportHeight}px`, maxHeight: `${viewportHeight}px` } : undefined}
+      className={`transition-all duration-300 flex flex-col ${
         isFullScreen
-          ? 'fixed inset-0 z-50 w-screen h-screen p-3 sm:p-6 bg-slate-950/95 backdrop-blur-2xl'
+          ? 'fixed inset-0 z-50 w-full p-0 bg-slate-950/98 backdrop-blur-2xl overflow-hidden'
           : `w-full h-full rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xl border overflow-hidden ${
               isDark
                 ? 'bg-slate-900/95 border-slate-800'
@@ -185,21 +219,30 @@ export const RealtimeChat = ({ theme, onBackToFeed }) => {
       }`}
     >
       {/* Top Application Bar */}
-      <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-black/10 dark:border-white/10 shrink-0 px-2 sm:px-4">
+      <div className={`flex items-center justify-between border-b shrink-0 px-2.5 sm:px-4 z-20 ${
+        isFullScreen
+          ? 'h-14 sm:h-16 border-white/10 bg-slate-900/90 shadow-xs'
+          : 'pb-3 sm:pb-4 border-black/10 dark:border-white/10'
+      }`}>
         
-        {/* Partner Info & Presence */}
-        <div className="flex items-center gap-3">
-          {onBackToFeed && !isFullScreen && (
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={onBackToFeed}
-              title="Back to Dashboard Feed"
-              className="p-2 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </motion.button>
-          )}
+        {/* Partner Info & Presence with ONE Dedicated Back Option */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              if (isFullScreen) {
+                setIsFullScreen(false);
+              } else if (onBackToFeed) {
+                onBackToFeed();
+              }
+            }}
+            title={isFullScreen ? 'Exit Full Screen' : 'Back to Dashboard'}
+            className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-inherit cursor-pointer flex items-center gap-1.5 transition-all shadow-xs shrink-0"
+          >
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="text-xs sm:text-sm font-bold">Back</span>
+          </motion.button>
 
           <div className="relative">
             <div className={`w-11 h-11 rounded-2xl bg-gradient-to-tr ${theme.primaryBtn} text-white flex items-center justify-center font-bold font-serif text-lg shadow-md`}>

@@ -387,7 +387,6 @@ export const WhatsAppChatPage = ({ onBack }) => {
         top: 0,
         left: 0,
         right: 0,
-        bottom: 0,
       }}
       className={`w-full flex flex-col font-sans overflow-hidden select-none transition-colors duration-700 ${
         isDarkTheme ? chatTheme.pageBgDark : chatTheme.pageBgLight
