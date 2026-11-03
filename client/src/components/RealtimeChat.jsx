@@ -462,14 +462,20 @@ export const RealtimeChat = ({ theme, onBackToFeed }) => {
               e.preventDefault();
               handleSend();
             }}
-            className="pt-2 flex items-center gap-2 shrink-0 px-2 pb-1"
+            className="pt-2 flex items-center gap-2 shrink-0 px-2 pb-1 select-text"
           >
             <input
               type="text"
+              inputMode="text"
+              autoComplete="off"
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              enterKeyHint="send"
+              spellCheck="true"
               value={text}
               onChange={handleInputChange}
               placeholder={`Message ${partnerName} with high-speed instant sync...`}
-              className={`flex-1 px-4 sm:px-5 py-3.5 rounded-2xl border text-xs sm:text-sm focus:outline-hidden focus:border-rose-400 font-medium transition-colors shadow-inner ${
+              className={`flex-1 px-4 sm:px-5 py-3.5 rounded-2xl border text-xs sm:text-sm focus:outline-hidden focus:border-rose-400 font-medium transition-colors shadow-inner select-text cursor-text ${
                 isDark
                   ? 'bg-slate-800/95 border-slate-700 text-white placeholder:text-slate-400'
                   : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400'

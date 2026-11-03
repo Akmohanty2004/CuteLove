@@ -201,6 +201,7 @@ export const WhatsAppChatPage = ({ onBack }) => {
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   const [mobileTab, setMobileTab] = useState('chat'); // 'chat' or 'sidebar'
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
   // Active Dynamic Chat Mood Theme
   const chatTheme = CHAT_MOOD_CONFIGS[activeMoodTheme] || CHAT_MOOD_CONFIGS.happy;
@@ -323,6 +324,9 @@ export const WhatsAppChatPage = ({ onBack }) => {
 
   const handleAddEmoji = (emoji) => {
     setText((prev) => prev + emoji);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 20);
   };
 
   const handleSendReaction = (type, label) => {
@@ -351,7 +355,7 @@ export const WhatsAppChatPage = ({ onBack }) => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 w-screen h-screen flex flex-col font-sans select-none overflow-hidden transition-colors duration-700 ${
+      className={`fixed inset-0 z-50 w-full h-[100dvh] max-h-[100dvh] flex flex-col font-sans overflow-hidden transition-colors duration-700 ${
         isDarkTheme ? chatTheme.pageBgDark : chatTheme.pageBgLight
       }`}
     >
@@ -607,13 +611,23 @@ export const WhatsAppChatPage = ({ onBack }) => {
           >
             {/* Partner Avatar & Info */}
             <div className="flex items-center gap-2 sm:gap-3">
-              {/* Mobile Back to Conversation / Sentiments List */}
+              {/* Back to Sanctuary Dashboard */}
               <button
-                onClick={() => setMobileTab('sidebar')}
-                className="md:hidden p-1.5 -ml-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-inherit cursor-pointer"
-                title="View Chats & Sentiments"
+                onClick={onBack}
+                className="p-1.5 -ml-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-inherit cursor-pointer flex items-center gap-1 transition-colors"
+                title="Return to Love Memory Sanctuary Dashboard"
               >
                 <ArrowLeft className="w-5 h-5" />
+                <span className="text-xs font-semibold hidden xs:inline">Back</span>
+              </button>
+
+              {/* Mobile Toggle to Sentiments & Search */}
+              <button
+                onClick={() => setMobileTab((prev) => (prev === 'sidebar' ? 'chat' : 'sidebar'))}
+                className="md:hidden p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-inherit cursor-pointer"
+                title="Toggle Sentiments & Search"
+              >
+                <Layers className="w-4 h-4 opacity-75" />
               </button>
 
               <div className="relative">
@@ -845,7 +859,7 @@ export const WhatsAppChatPage = ({ onBack }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
-                className={`p-3 border-t grid grid-cols-8 sm:grid-cols-16 gap-2 shrink-0 transition-colors ${
+                className={`p-3 border-t max-h-48 overflow-y-auto grid grid-cols-8 sm:grid-cols-16 gap-2 shrink-0 transition-colors ${
                   isDarkTheme ? chatTheme.headerDark : chatTheme.headerLight
                 }`}
               >
@@ -891,7 +905,7 @@ export const WhatsAppChatPage = ({ onBack }) => {
               e.preventDefault();
               handleSend();
             }}
-            className={`h-16 px-4 flex items-center gap-2 shrink-0 transition-colors ${
+            className={`min-h-16 py-2 px-3 sm:px-4 flex items-center gap-2 shrink-0 transition-colors border-t border-black/5 dark:border-white/5 select-text ${
               isDarkTheme ? chatTheme.headerDark : chatTheme.headerLight
             }`}
           >
@@ -902,7 +916,7 @@ export const WhatsAppChatPage = ({ onBack }) => {
               whileTap={{ scale: 0.9 }}
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
               title="Romantic Emojis"
-              className={`p-2 rounded-full cursor-pointer transition-colors ${
+              className={`p-2 rounded-full cursor-pointer transition-colors shrink-0 ${
                 showEmojiPicker
                   ? chatTheme.accentText
                   : 'opacity-70 hover:opacity-100'
@@ -918,18 +932,28 @@ export const WhatsAppChatPage = ({ onBack }) => {
               whileTap={{ scale: 0.9 }}
               onClick={() => handleSend("I love you so much ❤️")}
               title="Send Quick Heart"
-              className="p-2 rounded-full text-rose-500 hover:text-rose-400 cursor-pointer"
+              className="p-2 rounded-full text-rose-500 hover:text-rose-400 cursor-pointer shrink-0"
             >
               <Heart className="w-6 h-6 fill-rose-500" />
             </motion.button>
 
-            {/* Message Input Box */}
+            {/* Message Input Box with explicit mobile keyboard triggers */}
             <input
+              ref={inputRef}
               type="text"
+              inputMode="text"
+              autoComplete="off"
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              enterKeyHint="send"
+              spellCheck="true"
               value={text}
               onChange={handleInputChange}
+              onFocus={() => {
+                setTimeout(scrollToBottom, 200);
+              }}
               placeholder={`Send love message in ${chatTheme.name} mode...`}
-              className={`flex-1 h-10 px-4 rounded-xl text-xs sm:text-sm border-0 focus:outline-hidden transition-colors ${
+              className={`flex-1 h-11 px-4 rounded-xl text-sm border-0 focus:outline-hidden transition-colors select-text cursor-text ${
                 isDarkTheme ? chatTheme.inputBgDark : chatTheme.inputBgLight
               }`}
             />
@@ -940,7 +964,7 @@ export const WhatsAppChatPage = ({ onBack }) => {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               disabled={!text.trim() || sendMutation.isPending}
-              className={`p-2.5 rounded-full text-white cursor-pointer transition-all disabled:opacity-40 ${
+              className={`p-2.5 rounded-full text-white cursor-pointer transition-all disabled:opacity-40 shrink-0 ${
                 text.trim()
                   ? `${chatTheme.sendBtn}`
                   : 'bg-slate-400 opacity-60'
