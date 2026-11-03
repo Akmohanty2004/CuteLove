@@ -363,7 +363,7 @@ export const WhatsAppChatPage = ({ onBack }) => {
       <div className={`h-2.5 w-full ${chatTheme.topBar} shrink-0 transition-all duration-700 shadow-md`} />
 
       {/* Main WhatsApp Window Container */}
-      <div className="flex-1 flex overflow-hidden w-full h-full">
+      <div className="flex-1 min-h-0 flex overflow-hidden w-full">
         {/* ========================================================= */}
         {/* LEFT SIDEBAR: User Header, Search & Couple Conversations */}
         {/* ========================================================= */}
@@ -601,7 +601,7 @@ export const WhatsAppChatPage = ({ onBack }) => {
         <div
           className={`${
             mobileTab === 'chat' ? 'flex' : 'hidden'
-          } md:flex flex-1 flex-col h-full overflow-hidden relative`}
+          } md:flex flex-1 min-h-0 flex-col overflow-hidden relative w-full`}
         >
           {/* Right Top Header */}
           <div
@@ -729,7 +729,7 @@ export const WhatsAppChatPage = ({ onBack }) => {
 
           {/* Chat Area with Mood-Adaptive Dynamic Wallpaper */}
           <div
-            className={`flex-1 overflow-y-auto px-4 sm:px-12 py-4 space-y-2 relative transition-colors duration-700 ${
+            className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 sm:px-12 py-4 space-y-2 relative overscroll-contain transition-colors duration-700 ${
               isDarkTheme ? chatTheme.chatAreaDark : chatTheme.chatAreaLight
             }`}
           >
@@ -899,75 +899,74 @@ export const WhatsAppChatPage = ({ onBack }) => {
             ))}
           </div>
 
-          {/* Bottom Chat Input Bar */}
+          {/* Bottom Chat Input Bar - Guaranteed Always Visible Above Navigation Bar */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
               handleSend();
             }}
-            className={`min-h-16 py-2 px-3 sm:px-4 flex items-center gap-2 shrink-0 transition-colors border-t border-black/5 dark:border-white/5 select-text ${
+            className={`shrink-0 w-full p-2 sm:p-3 flex items-center gap-2 border-t z-30 select-text pb-[max(0.6rem,env(safe-area-inset-bottom))] transition-colors ${
               isDarkTheme ? chatTheme.headerDark : chatTheme.headerLight
             }`}
           >
-            {/* Emoji Button */}
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.15 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              title="Romantic Emojis"
-              className={`p-2 rounded-full cursor-pointer transition-colors shrink-0 ${
-                showEmojiPicker
-                  ? chatTheme.accentText
-                  : 'opacity-70 hover:opacity-100'
+            {/* Input pill containing Emoji Button, text input, and quick heart */}
+            <div
+              className={`flex-1 flex items-center gap-1.5 px-3 py-1.5 rounded-full border shadow-inner transition-colors ${
+                isDarkTheme
+                  ? 'bg-black/40 border-white/10 text-white'
+                  : 'bg-white border-slate-200 text-slate-900 shadow-xs'
               }`}
             >
-              <Smile className="w-6 h-6" />
-            </motion.button>
+              {/* Emoji Button */}
+              <button
+                type="button"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                title="Romantic Emojis"
+                className={`p-1.5 rounded-full cursor-pointer transition-colors shrink-0 ${
+                  showEmojiPicker ? chatTheme.accentText : 'opacity-70 hover:opacity-100'
+                }`}
+              >
+                <Smile className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
 
-            {/* Quick Heart Sentiment Button */}
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.15 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => handleSend("I love you so much ❤️")}
-              title="Send Quick Heart"
-              className="p-2 rounded-full text-rose-500 hover:text-rose-400 cursor-pointer shrink-0"
-            >
-              <Heart className="w-6 h-6 fill-rose-500" />
-            </motion.button>
+              {/* Message Input Box with explicit mobile keyboard triggers */}
+              <input
+                ref={inputRef}
+                type="text"
+                inputMode="text"
+                autoComplete="off"
+                autoCorrect="on"
+                autoCapitalize="sentences"
+                enterKeyHint="send"
+                spellCheck="true"
+                value={text}
+                onChange={handleInputChange}
+                onFocus={() => {
+                  setTimeout(scrollToBottom, 200);
+                }}
+                placeholder="Type a message..."
+                className="flex-1 bg-transparent border-0 focus:outline-hidden text-sm sm:text-base placeholder:text-slate-400 select-text cursor-text min-w-0"
+              />
 
-            {/* Message Input Box with explicit mobile keyboard triggers */}
-            <input
-              ref={inputRef}
-              type="text"
-              inputMode="text"
-              autoComplete="off"
-              autoCorrect="on"
-              autoCapitalize="sentences"
-              enterKeyHint="send"
-              spellCheck="true"
-              value={text}
-              onChange={handleInputChange}
-              onFocus={() => {
-                setTimeout(scrollToBottom, 200);
-              }}
-              placeholder={`Send love message in ${chatTheme.name} mode...`}
-              className={`flex-1 h-11 px-4 rounded-xl text-sm border-0 focus:outline-hidden transition-colors select-text cursor-text ${
-                isDarkTheme ? chatTheme.inputBgDark : chatTheme.inputBgLight
-              }`}
-            />
+              {/* Quick Heart Button */}
+              <button
+                type="button"
+                onClick={() => handleSend("I love you so much ❤️")}
+                title="Send Quick Heart"
+                className="p-1.5 rounded-full text-rose-500 hover:text-rose-400 cursor-pointer shrink-0"
+              >
+                <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-rose-500" />
+              </button>
+            </div>
 
-            {/* Send Button */}
+            {/* Circular Send Button */}
             <motion.button
               type="submit"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
               disabled={!text.trim() || sendMutation.isPending}
-              className={`p-2.5 rounded-full text-white cursor-pointer transition-all disabled:opacity-40 shrink-0 ${
-                text.trim()
-                  ? `${chatTheme.sendBtn}`
-                  : 'bg-slate-400 opacity-60'
+              className={`w-11 h-11 rounded-full text-white cursor-pointer transition-all disabled:opacity-40 flex items-center justify-center shrink-0 shadow-md ${
+                text.trim() ? `${chatTheme.sendBtn}` : 'bg-slate-500 opacity-60'
               }`}
             >
               <Send className="w-5 h-5 ml-0.5" />

@@ -22,7 +22,12 @@ import { Sparkles, MessageCircle } from 'lucide-react';
 export const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState('feed'); // 'feed' | 'chat' | 'vault' | 'timeline' | 'notes'
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  useEffect(() => {
+    if (activeTab === 'chat') {
+      navigateTo('whatsapp');
+      setActiveTab('feed');
+    }
+  }, [activeTab]);
 
   const { activeMoodTheme, navigateTo } = useAuth();
   const theme = MOOD_THEMES[activeMoodTheme] || MOOD_THEMES.happy;
@@ -103,31 +108,7 @@ export const DashboardPage = () => {
             </motion.div>
           )}
 
-          {activeTab === 'chat' && (
-            <motion.div
-              key="chat"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.35, ease: 'easeOut' }}
-              className="flex-1 flex flex-col h-full space-y-3"
-            >
-              {/* Option to switch to Dedicated Full-Screen WhatsApp Page */}
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-[#00a884]/15 border border-[#00a884]/30 text-xs">
-                <span className="font-semibold text-slate-800 dark:text-emerald-200 flex items-center gap-2">
-                  <span>💬</span> Prefer the authentic full-screen WhatsApp Web layout?
-                </span>
-                <button
-                  onClick={() => navigateTo('whatsapp')}
-                  className="px-3.5 py-1.5 rounded-xl bg-[#00a884] hover:bg-[#008f6f] text-white font-bold cursor-pointer transition-colors shadow-xs"
-                >
-                  Open WhatsApp Full Screen Page ➔
-                </button>
-              </div>
 
-              <RealtimeChat theme={theme} onBackToFeed={() => setActiveTab('feed')} />
-            </motion.div>
-          )}
 
           {activeTab === 'vault' && (
             <motion.div

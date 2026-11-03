@@ -273,13 +273,19 @@ export const RomanticMorphingGallery = () => {
     }
   };
 
-  // Continuous 3D orbit rotation loop with speedMultiplier
+  // Continuous 3D orbit rotation loop with speedMultiplier & smooth requestAnimationFrame
   useEffect(() => {
     if (!isPlaying || viewMode !== 'orbit' || hoveredCardId !== null || isDragging) return;
-    const interval = setInterval(() => {
-      setOrbitAngle((prev) => (prev + 0.006 * speedMultiplier) % (Math.PI * 2));
-    }, 25);
-    return () => clearInterval(interval);
+    let animId;
+    let lastTime = performance.now();
+    const rotate = (currentTime) => {
+      const delta = Math.min((currentTime - lastTime) / 1000, 0.1);
+      lastTime = currentTime;
+      setOrbitAngle((prev) => (prev + 0.25 * speedMultiplier * delta) % (Math.PI * 2));
+      animId = requestAnimationFrame(rotate);
+    };
+    animId = requestAnimationFrame(rotate);
+    return () => cancelAnimationFrame(animId);
   }, [isPlaying, viewMode, hoveredCardId, isDragging, speedMultiplier]);
 
   // Pointer drag to spin the 3D orbit manually
@@ -832,7 +838,8 @@ export const RomanticMorphingGallery = () => {
                     zIndex: isHovered ? 40 : zIndex,
                     opacity: isHovered ? 1 : opacity,
                     filter: depthNorm < 0.25 && !isHovered ? 'blur(1px)' : 'none',
-                    transition: isDragging ? 'none' : 'transform 0.25s ease-out, opacity 0.25s ease-out',
+                    transition: isDragging || isPlaying ? 'opacity 0.2s ease-out' : 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease-out',
+                    willChange: 'transform, opacity',
                   }}
                   onMouseEnter={() => {
                     setHoveredCardId(item._id);

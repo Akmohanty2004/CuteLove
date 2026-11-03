@@ -14,6 +14,14 @@ export const Navbar = ({ activeTab, setActiveTab, onOpenUpload, onOpenSettings }
   const theme = MOOD_THEMES[activeMoodTheme] || MOOD_THEMES.happy;
   const partnerDisplayName = partner?.displayName || (user?.username === 'ashis' ? 'Kirti' : 'Ashis');
 
+  const handleTabClick = (tabId) => {
+    if (tabId === 'chat') {
+      navigateTo('whatsapp');
+    } else {
+      setActiveTab(tabId);
+    }
+  };
+
   // When active mood changes, if audio is on, automatically switch ambience!
   useEffect(() => {
     if (isAudioOn) {
@@ -76,7 +84,7 @@ export const Navbar = ({ activeTab, setActiveTab, onOpenUpload, onOpenSettings }
               <motion.button
                 key={tab.id}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabClick(tab.id)}
                 className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   isActive ? theme.tabActive : theme.tabInactive
                 }`}
@@ -206,7 +214,7 @@ export const Navbar = ({ activeTab, setActiveTab, onOpenUpload, onOpenSettings }
             <motion.button
               key={tab.id}
               whileTap={{ scale: 0.9 }}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabClick(tab.id)}
               className={`flex flex-col items-center gap-1 text-[11px] font-semibold relative px-2 py-1 rounded-xl cursor-pointer ${
                 isActive
                   ? 'text-rose-600 font-black'
