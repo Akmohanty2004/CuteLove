@@ -42,16 +42,12 @@ export const App = () => {
       ) : user ? (
         <AnimatePresence mode="wait" initial={false}>
           {currentPage === 'whatsapp' ? (
-            <motion.div
+            <div
               key="whatsapp-fullscreen-page"
-              initial={{ opacity: 0, scale: 0.96, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 12 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed inset-0 z-50 w-full h-[100dvh]"
+              className="fixed inset-0 z-50 w-full h-full overflow-hidden"
             >
               <WhatsAppChatPage onBack={() => navigateTo('dashboard')} />
-            </motion.div>
+            </div>
           ) : (
             <motion.div
               key="dashboard-sanctuary-page"
