@@ -1,0 +1,17 @@
+{
+  "short_name": "Love Space",
+  "name": "Ashis & Kirti - Our Private Couple Space",
+  "icons": [
+    {
+      "src": "/heart.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#fff1f2",
+  "theme_color": "#f43f5e",
+  "display": "standalone",
+  "orientation": "portrait"
+}
