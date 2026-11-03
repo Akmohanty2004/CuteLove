@@ -13,7 +13,7 @@ const runTests = async () => {
   const ashisLoginRes = await fetch(`${BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password: 'ashis123', rememberMe: true }),
+    body: JSON.stringify({ password: process.env.ASHIS_PASSWORD || 'Ashis0710', rememberMe: true }),
   });
   const cookies = ashisLoginRes.headers.get('set-cookie');
   const ashisData = await ashisLoginRes.json();
@@ -23,7 +23,7 @@ const runTests = async () => {
   const kirtiLoginRes = await fetch(`${BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password: 'kirti123', rememberMe: true }),
+    body: JSON.stringify({ password: process.env.KIRTI_PASSWORD || 'Kirti1210', rememberMe: true }),
   });
   const kirtiData = await kirtiLoginRes.json();
   console.log('2b. Kirti Single-Password Login:', kirtiData.success && kirtiData.user.username === 'kirti' ? '✅ PASS (Auto-detected Kirti)' : '❌ FAIL');

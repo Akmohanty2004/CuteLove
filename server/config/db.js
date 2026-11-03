@@ -91,14 +91,19 @@ export const connectDB = async () => {
 
 export const seedInitialData = async () => {
   try {
-    const userCount = await User.countDocuments();
-    if (userCount < 2) {
+    const ashisPasswordRaw = process.env.ASHIS_PASSWORD || 'Ashis0710';
+    const kirtiPasswordRaw = process.env.KIRTI_PASSWORD || 'Kirti1210';
+
+    const ashis = await User.findOne({ username: 'ashis' });
+    const kirti = await User.findOne({ username: 'kirti' });
+
+    if (!ashis || !kirti) {
       console.log('🌱 Seeding exclusive couple users: Ashis & Kirti...');
       
-      const ashisPasswordHash = await bcrypt.hash('ashis123', 10);
-      const kirtiPasswordHash = await bcrypt.hash('kirti123', 10);
+      const ashisPasswordHash = await bcrypt.hash(ashisPasswordRaw, 10);
+      const kirtiPasswordHash = await bcrypt.hash(kirtiPasswordRaw, 10);
 
-      const ashis = await User.findOneAndUpdate(
+      const newAshis = await User.findOneAndUpdate(
         { username: 'ashis' },
         {
           username: 'ashis',
@@ -112,7 +117,7 @@ export const seedInitialData = async () => {
         { upsert: true, new: true }
       );
 
-      const kirti = await User.findOneAndUpdate(
+      const newKirti = await User.findOneAndUpdate(
         { username: 'kirti' },
         {
           username: 'kirti',
@@ -132,12 +137,12 @@ export const seedInitialData = async () => {
         const now = Date.now();
         const hour = 3600 * 1000;
         await MoodLog.insertMany([
-          { user: ashis._id, username: 'ashis', mood: 'happy', note: 'Woke up thinking of you', createdAt: new Date(now - 20 * hour) },
-          { user: kirti._id, username: 'kirti', mood: 'normal', note: 'Busy morning at work', createdAt: new Date(now - 16 * hour) },
-          { user: ashis._id, username: 'ashis', mood: 'happy', note: 'Got your sweet message!', createdAt: new Date(now - 12 * hour) },
-          { user: kirti._id, username: 'kirti', mood: 'happy', note: 'Can not wait to see you', createdAt: new Date(now - 8 * hour) },
-          { user: ashis._id, username: 'ashis', mood: 'normal', note: 'Evening walk', createdAt: new Date(now - 4 * hour) },
-          { user: kirti._id, username: 'kirti', mood: 'happy', note: 'Talking with Ashis', createdAt: new Date(now - 1 * hour) },
+          { user: newAshis._id, username: 'ashis', mood: 'happy', note: 'Woke up thinking of you', createdAt: new Date(now - 20 * hour) },
+          { user: newKirti._id, username: 'kirti', mood: 'normal', note: 'Busy morning at work', createdAt: new Date(now - 16 * hour) },
+          { user: newAshis._id, username: 'ashis', mood: 'happy', note: 'Got your sweet message!', createdAt: new Date(now - 12 * hour) },
+          { user: newKirti._id, username: 'kirti', mood: 'happy', note: 'Can not wait to see you', createdAt: new Date(now - 8 * hour) },
+          { user: newAshis._id, username: 'ashis', mood: 'normal', note: 'Evening walk', createdAt: new Date(now - 4 * hour) },
+          { user: newKirti._id, username: 'kirti', mood: 'happy', note: 'Talking with Ashis', createdAt: new Date(now - 1 * hour) },
         ]);
       }
 
@@ -146,7 +151,7 @@ export const seedInitialData = async () => {
       if (memoryCount === 0) {
         await Memory.insertMany([
           {
-            uploader: ashis._id,
+            uploader: newAshis._id,
             uploaderName: 'Ashis',
             mediaType: 'image',
             url: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=1200&q=80',
@@ -156,7 +161,7 @@ export const seedInitialData = async () => {
             date: new Date(Date.now() - 5 * 86400 * 1000),
           },
           {
-            uploader: kirti._id,
+            uploader: newKirti._id,
             uploaderName: 'Kirti',
             mediaType: 'image',
             url: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=1200&q=80',
@@ -166,7 +171,7 @@ export const seedInitialData = async () => {
             date: new Date(Date.now() - 12 * 86400 * 1000),
           },
           {
-            uploader: ashis._id,
+            uploader: newAshis._id,
             uploaderName: 'Ashis',
             mediaType: 'image',
             url: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=1200&q=80',
@@ -176,7 +181,7 @@ export const seedInitialData = async () => {
             date: new Date(Date.now() - 20 * 86400 * 1000),
           },
           {
-            uploader: kirti._id,
+            uploader: newKirti._id,
             uploaderName: 'Kirti',
             mediaType: 'image',
             url: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=1200&q=80',
@@ -186,13 +191,13 @@ export const seedInitialData = async () => {
             date: new Date(Date.now() - 2 * 86400 * 1000),
           },
           {
-            uploader: ashis._id,
+            uploader: newAshis._id,
             uploaderName: 'Ashis',
             mediaType: 'image',
             url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=1200&q=80',
             publicId: 'seed_memory_5',
             caption: 'Private Vault Memory: Our secret stargazing trip. Kept safely in our private vault.',
-            isVisibleOnDashboard: false, // Private by default!
+            isVisibleOnDashboard: false,
             date: new Date(Date.now() - 25 * 86400 * 1000),
           }
         ]);
@@ -202,7 +207,7 @@ export const seedInitialData = async () => {
       const noteCount = await Note.countDocuments();
       if (noteCount === 0) {
         await Note.create({
-          sender: ashis._id,
+          sender: newAshis._id,
           senderName: 'Ashis',
           content: 'I left your favorite chocolates in the fridge! Have an amazing day my love ❤️',
           color: 'rose',
@@ -211,6 +216,23 @@ export const seedInitialData = async () => {
       }
 
       console.log('✅ Seed completed: Ashis and Kirti initialized.');
+    } else {
+      // Synchronize passwords if changed in .env
+      const ashisMatches = await bcrypt.compare(ashisPasswordRaw, ashis.password);
+      if (!ashisMatches) {
+        console.log("🔄 Updating Ashis's password from environment variables...");
+        ashis.password = await bcrypt.hash(ashisPasswordRaw, 10);
+        await ashis.save();
+        console.log("✅ Ashis's password successfully updated in MongoDB Atlas.");
+      }
+
+      const kirtiMatches = await bcrypt.compare(kirtiPasswordRaw, kirti.password);
+      if (!kirtiMatches) {
+        console.log("🔄 Updating Kirti's password from environment variables...");
+        kirti.password = await bcrypt.hash(kirtiPasswordRaw, 10);
+        await kirti.save();
+        console.log("✅ Kirti's password successfully updated in MongoDB Atlas.");
+      }
     }
   } catch (error) {
     console.error('Error seeding data:', error);

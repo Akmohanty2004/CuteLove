@@ -16,3 +16,7 @@ services:
         generateValue: true
       - key: JWT_REFRESH_SECRET
         generateValue: true
+      - key: ASHIS_PASSWORD
+        value: Ashis0710
+      - key: KIRTI_PASSWORD
+        value: Kirti1210
