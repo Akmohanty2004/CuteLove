@@ -15,11 +15,7 @@ export const Navbar = ({ activeTab, setActiveTab, onOpenUpload, onOpenSettings }
   const partnerDisplayName = partner?.displayName || (user?.username === 'ashis' ? 'Kirti' : 'Ashis');
 
   const handleTabClick = (tabId) => {
-    if (tabId === 'chat') {
-      navigateTo('whatsapp');
-    } else {
-      setActiveTab(tabId);
-    }
+    setActiveTab(tabId);
   };
 
   // When active mood changes, if audio is on, automatically switch ambience!

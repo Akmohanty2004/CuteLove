@@ -23,6 +23,7 @@ import api from '../api/axiosClient';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { playMoodAmbience, stopAmbience } from '../utils/ambientAudio';
+import { triggerSprinklerEffect } from './EmojiSprinkler';
 import confetti from 'canvas-confetti';
 
 const QUICK_BURSTS = [
@@ -37,7 +38,7 @@ const QUICK_BURSTS = [
 ];
 
 export const RealtimeChat = ({ theme, onBackToFeed }) => {
-  const { user, partner, partnerOnline, activeMoodTheme } = useAuth();
+  const { user, partner, partnerOnline, activeMoodTheme, navigateTo } = useAuth();
   const { chatPartnerTyping, emitChatTyping, emitInstantMessage, emitReaction } = useSocket();
   const queryClient = useQueryClient();
 
@@ -46,6 +47,7 @@ export const RealtimeChat = ({ theme, onBackToFeed }) => {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
   // TanStack Query for messages
   const { data: serverMessages = [], isLoading } = useQuery({
@@ -123,24 +125,34 @@ export const RealtimeChat = ({ theme, onBackToFeed }) => {
     emitChatTyping(e.target.value.length > 0);
   };
 
-  const handleSendQuick = (burst) => {
-    handleSend(burst);
-    confetti({
-      particleCount: 25,
-      spread: 50,
-      origin: { y: 0.8 },
-      colors: ['#f43f5e', '#fb7185', '#fda4af', '#fbbf24'],
-    });
+  const REACTION_MESSAGES = {
+    hug: 'Sending you a warm loving hug 🤗🧸💛',
+    kiss: 'Sending you sweet kisses 💋😘🌹',
+    sparkles: 'Thinking of you with starlight sparkles ✨⭐💫',
+    heart: 'Sending infinite love hearts 💖❤️💕',
+    fire: 'You set my heart on fire 🔥❤️‍🔥✨',
   };
 
-  const handleSendReaction = (type, label) => {
-    emitReaction(type, `Sent from full-screen chat with all my love! ❤️`);
-    confetti({
-      particleCount: 35,
-      spread: 60,
-      origin: { y: 0.5 },
-      colors: ['#f43f5e', '#ec4899', '#fda4af'],
-    });
+  const handleSendQuick = (burst) => {
+    handleSend(burst);
+    if (burst.includes('🤗') || burst.toLowerCase().includes('hug')) {
+      triggerSprinklerEffect('hug');
+    } else if (burst.includes('💋') || burst.toLowerCase().includes('kiss')) {
+      triggerSprinklerEffect('kiss');
+    } else if (burst.includes('✨') || burst.toLowerCase().includes('think')) {
+      triggerSprinklerEffect('sparkles');
+    } else if (burst.includes('🔥') || burst.toLowerCase().includes('melt')) {
+      triggerSprinklerEffect('fire');
+    } else {
+      triggerSprinklerEffect('heart');
+    }
+  };
+
+  const handleSendReaction = (type, customLabel) => {
+    const reactionText = REACTION_MESSAGES[type] || `Sent you love ${customLabel || 'reaction'} 💕`;
+    triggerSprinklerEffect(type);
+    emitReaction(type, reactionText);
+    handleSend(reactionText);
   };
 
   const toggleAmbience = () => {
@@ -159,16 +171,16 @@ export const RealtimeChat = ({ theme, onBackToFeed }) => {
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, scale: 0.98 }}
+      initial={{ opacity: 0, scale: 0.99 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.3 }}
       className={`transition-all duration-700 flex flex-col ${
         isFullScreen
           ? 'fixed inset-0 z-50 w-screen h-screen p-3 sm:p-6 bg-slate-950/95 backdrop-blur-2xl'
-          : `w-full h-[calc(100vh-6.5rem)] rounded-3xl p-3 sm:p-5 shadow-2xl border ${
+          : `w-full h-full rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xl border overflow-hidden ${
               isDark
-                ? 'bg-slate-900/90 border-slate-800'
-                : 'bg-white/90 border-white/80'
+                ? 'bg-slate-900/95 border-slate-800'
+                : 'bg-white/95 border-white/80'
             }`
       }`}
     >
@@ -269,6 +281,18 @@ export const RealtimeChat = ({ theme, onBackToFeed }) => {
             }`}
           >
             {isAudioPlaying ? <Volume2 className="w-4 h-4 animate-bounce" /> : <VolumeX className="w-4 h-4 opacity-60" />}
+          </motion.button>
+
+          {/* Dedicated Full Screen WhatsApp Page Launcher */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigateTo('whatsapp')}
+            title="Open Dedicated Full-Screen WhatsApp Page"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#00a884] hover:bg-[#008f6f] text-white text-xs font-bold shadow-xs cursor-pointer transition-all"
+          >
+            <MessageCircle className="w-3.5 h-3.5" />
+            <span className="hidden xs:inline">WhatsApp</span>
           </motion.button>
 
           {/* Dedicated Full Screen Toggle */}
@@ -462,34 +486,58 @@ export const RealtimeChat = ({ theme, onBackToFeed }) => {
               e.preventDefault();
               handleSend();
             }}
-            className="pt-2 flex items-center gap-2 shrink-0 px-2 pb-1 select-text"
+            className={`pt-2 flex items-center gap-2 shrink-0 px-1 sm:px-2 pb-[max(0.6rem,env(safe-area-inset-bottom))] select-text z-30 transition-colors ${
+              isDark ? 'bg-slate-900/95' : 'bg-white/95'
+            }`}
           >
-            <input
-              type="text"
-              inputMode="text"
-              autoComplete="off"
-              autoCorrect="on"
-              autoCapitalize="sentences"
-              enterKeyHint="send"
-              spellCheck="true"
-              value={text}
-              onChange={handleInputChange}
-              placeholder={`Message ${partnerName} with high-speed instant sync...`}
-              className={`flex-1 px-4 sm:px-5 py-3.5 rounded-2xl border text-xs sm:text-sm focus:outline-hidden focus:border-rose-400 font-medium transition-colors shadow-inner select-text cursor-text ${
+            <div
+              className={`flex-1 flex items-center gap-1.5 px-3 py-1.5 sm:py-2.5 rounded-2xl border shadow-inner transition-colors ${
                 isDark
-                  ? 'bg-slate-800/95 border-slate-700 text-white placeholder:text-slate-400'
-                  : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400'
+                  ? 'bg-slate-800/95 border-slate-700 text-white'
+                  : 'bg-white border-slate-300 text-slate-900 shadow-xs'
               }`}
-            />
+            >
+              {/* Quick Heart Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  handleSend("I love you so much ❤️");
+                  triggerSprinklerEffect('heart');
+                }}
+                title="Send Quick Heart"
+                className="p-1 rounded-full text-rose-500 hover:text-rose-400 cursor-pointer shrink-0"
+              >
+                <Heart className="w-5 h-5 fill-rose-500" />
+              </button>
+
+              <input
+                ref={inputRef}
+                type="text"
+                inputMode="text"
+                autoComplete="off"
+                autoCorrect="on"
+                autoCapitalize="sentences"
+                enterKeyHint="send"
+                spellCheck="true"
+                value={text}
+                onChange={handleInputChange}
+                onFocus={() => {
+                  setTimeout(scrollToBottom, 150);
+                }}
+                placeholder={`Message ${partnerName}...`}
+                className="flex-1 bg-transparent border-0 focus:outline-hidden text-xs sm:text-sm placeholder:text-slate-400 select-text cursor-text min-w-0"
+              />
+            </div>
 
             <motion.button
               type="submit"
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.92 }}
               disabled={!text.trim() || sendMutation.isPending}
-              className={`p-3.5 rounded-2xl bg-gradient-to-r ${theme.primaryBtn} disabled:opacity-50 text-white shadow-lg cursor-pointer flex items-center justify-center shrink-0 transition-all`}
+              className={`p-2.5 sm:p-3 rounded-2xl bg-gradient-to-r ${theme.primaryBtn} disabled:opacity-50 text-white shadow-lg cursor-pointer flex items-center justify-center shrink-0 transition-all`}
+              title="Send Message"
             >
-              <Send className="w-5 h-5" />
+              <Send className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5" />
             </motion.button>
           </form>
 

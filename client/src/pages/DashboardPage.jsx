@@ -22,18 +22,13 @@ import { Sparkles, MessageCircle } from 'lucide-react';
 export const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState('feed'); // 'feed' | 'chat' | 'vault' | 'timeline' | 'notes'
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  useEffect(() => {
-    if (activeTab === 'chat') {
-      navigateTo('whatsapp');
-      setActiveTab('feed');
-    }
-  }, [activeTab]);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const { activeMoodTheme, navigateTo } = useAuth();
   const theme = MOOD_THEMES[activeMoodTheme] || MOOD_THEMES.happy;
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-700 bg-gradient-to-br ${theme.bgGradient} selection:bg-rose-200 selection:text-rose-900 pb-16 relative overflow-x-hidden ${theme.isDark ? 'dark-theme' : ''}`}>
+    <div className={`min-h-screen flex flex-col transition-colors duration-700 bg-gradient-to-br ${theme.bgGradient} selection:bg-rose-200 selection:text-rose-900 ${activeTab === 'chat' ? 'pb-0 h-[100dvh] max-h-[100dvh] overflow-hidden' : 'pb-16'} relative overflow-x-hidden ${theme.isDark ? 'dark-theme' : ''}`}>
       
       {/* Dynamic Realistic Atmospheric Canvas & Weather Engine (Rain, Embers, Sunbeams, Fireflies) */}
       <RealisticAtmosphere mood={activeMoodTheme} />
@@ -49,7 +44,7 @@ export const DashboardPage = () => {
       {/* Main Container */}
       <main className={`flex-1 w-full mx-auto relative z-20 ${
         activeTab === 'chat'
-          ? 'max-w-7xl px-2 sm:px-4 py-2 sm:py-3 flex flex-col'
+          ? 'max-w-7xl px-2 sm:px-4 py-1 flex flex-col h-[calc(100%-4rem)] min-h-0 overflow-hidden'
           : 'max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6'
       }`}>
         
@@ -108,7 +103,21 @@ export const DashboardPage = () => {
             </motion.div>
           )}
 
-
+          {activeTab === 'chat' && (
+            <motion.div
+              key="chat"
+              initial={{ opacity: 0, scale: 0.99 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.99 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="flex-1 min-h-0 flex flex-col h-full overflow-hidden"
+            >
+              <RealtimeChat
+                theme={theme}
+                onBackToFeed={() => setActiveTab('feed')}
+              />
+            </motion.div>
+          )}
 
           {activeTab === 'vault' && (
             <motion.div
