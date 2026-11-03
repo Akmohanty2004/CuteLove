@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import path from 'path';
+import dns from 'dns';
 import { spawn } from 'child_process';
 import User from '../models/User.js';
 import Memory from '../models/Memory.js';
@@ -51,9 +52,17 @@ const startLocalMongoProcess = async () => {
 export const connectDB = async () => {
   let uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ashis_kirti_love';
 
+  if (uri.startsWith('mongodb+srv://')) {
+    try {
+      dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+    } catch (dnsErr) {
+      // ignore if environment restricts custom DNS
+    }
+  }
+
   try {
     console.log(`Connecting to MongoDB...`);
-    await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 });
+    await mongoose.connect(uri, { serverSelectionTimeoutMS: 15000 });
     console.log('✅ MongoDB connected successfully.');
   } catch (err) {
     if (process.env.MONGODB_URI && (process.env.MONGODB_URI.includes('mongodb+srv') || process.env.NODE_ENV === 'production')) {
