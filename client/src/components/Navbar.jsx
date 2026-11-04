@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Image, Shield, LogOut, Settings, Volume2, VolumeX, Sparkles, Plus, BookOpen, BarChart2, StickyNote, MessageCircle, Maximize } from 'lucide-react';
+import { Heart, Image, Shield, LogOut, Settings, Volume2, VolumeX, Sparkles, Plus, BookOpen, BarChart2, StickyNote, MessageCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { MOOD_THEMES } from '../utils/moodThemes';
 import { playMoodAmbience, stopAmbience } from '../utils/ambientAudio';
-import { toggleAppFullscreen } from '../utils/fullscreen';
 
 export const Navbar = ({ activeTab, setActiveTab, onOpenUpload, onOpenSettings }) => {
   const { user, partner, partnerOnline, sessionDaysRemaining, activeMoodTheme, logout, navigateTo } = useAuth();
@@ -133,20 +132,6 @@ export const Navbar = ({ activeTab, setActiveTab, onOpenUpload, onOpenSettings }
                 <span className="hidden sm:inline">Ambience</span>
               </>
             )}
-          </button>
-
-          {/* Full Screen Toggle (Hides mobile browser top URL bar) */}
-          <button
-            onClick={toggleAppFullscreen}
-            title="Toggle Full Screen (Hides browser top bar)"
-            className={`flex items-center gap-1 p-2 sm:px-2.5 sm:py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
-              theme.isDark
-                ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
-                : 'bg-white/80 text-slate-700 border-slate-200 hover:bg-white'
-            }`}
-          >
-            <Maximize className="w-3.5 h-3.5 text-rose-500" />
-            <span className="hidden sm:inline">Full Screen</span>
           </button>
 
           {/* 30-Day Session Badge */}
