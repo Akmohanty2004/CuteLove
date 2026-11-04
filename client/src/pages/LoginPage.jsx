@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Lock, Shield, ArrowRight, Sparkles, KeyRound } from 'lucide-react';
+import { Heart, Lock, Shield, ArrowRight, Sparkles, KeyRound, Maximize } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { enterAppFullscreen, toggleAppFullscreen } from '../utils/fullscreen';
 
 export const LoginPage = () => {
   const { login } = useAuth();
@@ -17,6 +18,9 @@ export const LoginPage = () => {
       setErrorMsg('Please enter your secret password.');
       return;
     }
+
+    // Automatically enter true full-screen mode to hide browser address bar
+    enterAppFullscreen();
 
     setIsLoading(true);
     setErrorMsg('');
@@ -62,6 +66,17 @@ export const LoginPage = () => {
           <p className="text-xs text-slate-500 mt-1">
             Enter your secret password to unlock our shared space
           </p>
+
+          {/* Full-screen button to hide top browser bar */}
+          <button
+            type="button"
+            onClick={toggleAppFullscreen}
+            className="mt-3 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all cursor-pointer shadow-xs active:scale-95"
+            title="Open in Full Screen (hides browser top bar)"
+          >
+            <Maximize className="w-3.5 h-3.5 text-rose-500" />
+            <span>Open Full Screen (Hide Top Bar)</span>
+          </button>
         </div>
 
         {errorMsg && (

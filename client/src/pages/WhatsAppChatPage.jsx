@@ -10,12 +10,14 @@ import {
   Volume2,
   VolumeX,
   CheckCheck,
+  Maximize,
 } from 'lucide-react';
 import api from '../api/axiosClient';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { playMoodAmbience, stopAmbience } from '../utils/ambientAudio';
 import { triggerSprinklerEffect } from '../components/EmojiSprinkler';
+import { toggleAppFullscreen } from '../utils/fullscreen';
 
 const QUICK_BURSTS = [
   "I love you so much ❤️",
@@ -539,6 +541,15 @@ export const WhatsAppChatPage = ({ onBack }) => {
             ) : (
               <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 opacity-60" />
             )}
+          </button>
+
+          {/* Dedicated Full Screen Button (Hides mobile browser top URL bar) */}
+          <button
+            onClick={toggleAppFullscreen}
+            title="Toggle True Full Screen (Hides browser top bar)"
+            className="p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer transition-colors text-inherit ml-0.5"
+          >
+            <Maximize className="w-4 h-4 sm:w-5 sm:h-5 opacity-75 hover:opacity-100" />
           </button>
         </div>
       </header>
