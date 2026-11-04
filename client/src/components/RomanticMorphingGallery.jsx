@@ -254,6 +254,15 @@ export const RomanticMorphingGallery = () => {
 
   const galleryItems = Array.from(uniqueMemoryMap.values());
 
+  // Up to 8 celestial satellite positions for 3D Orbit View
+  const orbitItems = galleryItems.slice(0, 8);
+
+  // Responsive 3D Radii calculation
+  const isMobile = arenaWidth < 640;
+  const isTablet = arenaWidth >= 640 && arenaWidth < 1024;
+  const rx = isMobile ? Math.min(arenaWidth * 0.40, 140) : isTablet ? 220 : 310;
+  const ry = isMobile ? Math.min(arenaWidth * 0.22, 75) : isTablet ? 110 : 140;
+
   // Web Audio crystalline celestial chime
   const playCelestialChime = (freq = 659.25) => {
     try {
@@ -578,15 +587,6 @@ export const RomanticMorphingGallery = () => {
       setImageToDelete(null);
     }
   };
-
-  // Up to 8 celestial satellite positions for 3D Orbit View
-  const orbitItems = galleryItems.slice(0, 8);
-
-  // Responsive 3D Radii calculation
-  const isMobile = arenaWidth < 640;
-  const isTablet = arenaWidth >= 640 && arenaWidth < 1024;
-  const rx = isMobile ? Math.min(arenaWidth * 0.40, 140) : isTablet ? 220 : 310;
-  const ry = isMobile ? Math.min(arenaWidth * 0.22, 75) : isTablet ? 110 : 140;
 
   return (
     <section
