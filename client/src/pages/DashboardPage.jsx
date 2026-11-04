@@ -27,6 +27,14 @@ export const DashboardPage = () => {
   const { activeMoodTheme, navigateTo } = useAuth();
   const theme = MOOD_THEMES[activeMoodTheme] || MOOD_THEMES.happy;
 
+  // Clicking chat directly opens authentic full-screen WhatsApp chat view (no navbar covering it)
+  React.useEffect(() => {
+    if (activeTab === 'chat') {
+      navigateTo('whatsapp');
+      setActiveTab('feed');
+    }
+  }, [activeTab, navigateTo]);
+
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-700 bg-gradient-to-br ${theme.bgGradient} selection:bg-rose-200 selection:text-rose-900 ${activeTab === 'chat' ? 'pb-0 h-[100dvh] max-h-[100dvh] overflow-hidden' : 'pb-16'} relative overflow-x-hidden ${theme.isDark ? 'dark-theme' : ''}`}>
       

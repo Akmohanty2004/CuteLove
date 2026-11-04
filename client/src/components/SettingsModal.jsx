@@ -47,8 +47,8 @@ export const SettingsModal = ({ isOpen, onClose }) => {
   const progressPercent = Math.min(100, Math.round(((30 - sessionDaysRemaining) / 30) * 100));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md">
-      <div className="relative w-full max-w-md glass-modal rounded-3xl p-6 shadow-2xl border border-white/80 animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-md">
+      <div className="relative w-full max-w-md max-h-[92dvh] overflow-y-auto glass-modal rounded-3xl p-5 sm:p-6 shadow-2xl border border-white/80 animate-in fade-in zoom-in-95 duration-200">
         
         {/* Close Button */}
         <button

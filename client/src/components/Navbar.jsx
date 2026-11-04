@@ -15,6 +15,10 @@ export const Navbar = ({ activeTab, setActiveTab, onOpenUpload, onOpenSettings }
   const partnerDisplayName = partner?.displayName || (user?.username === 'ashis' ? 'Kirti' : 'Ashis');
 
   const handleTabClick = (tabId) => {
+    if (tabId === 'chat') {
+      navigateTo('whatsapp');
+      return;
+    }
     setActiveTab(tabId);
   };
 

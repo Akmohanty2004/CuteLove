@@ -182,13 +182,14 @@ export const WhatsAppChatPage = ({ onBack }) => {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(true);
 
-  // Dynamic viewport height tracking to guarantee the input bar stays visible above the mobile keyboard
+  // Dynamic viewport height & keyboard tracking to guarantee the input bar stays visible above the mobile keyboard
   const [viewportHeight, setViewportHeight] = useState(() => {
     if (typeof window !== 'undefined' && window.visualViewport) {
       return window.visualViewport.height;
     }
     return typeof window !== 'undefined' ? window.innerHeight : 800;
   });
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -196,15 +197,20 @@ export const WhatsAppChatPage = ({ onBack }) => {
   // Active Dynamic Chat Mood Theme
   const chatTheme = CHAT_MOOD_CONFIGS[activeMoodTheme] || CHAT_MOOD_CONFIGS.happy;
 
-  // Track visualViewport for rock-solid mobile keyboard responsiveness
+  // Track visualViewport for rock-solid mobile keyboard responsiveness & lock outer body scrolling
   useEffect(() => {
     const handleViewport = () => {
       if (window.visualViewport) {
-        setViewportHeight(window.visualViewport.height);
+        const vvh = window.visualViewport.height;
+        setViewportHeight(vvh);
+        const kbActive = typeof window !== 'undefined' && (window.innerHeight - vvh > 120);
+        setIsKeyboardOpen(kbActive);
       } else {
         setViewportHeight(window.innerHeight);
       }
     };
+
+    handleViewport();
 
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handleViewport);
@@ -212,12 +218,29 @@ export const WhatsAppChatPage = ({ onBack }) => {
     }
     window.addEventListener('resize', handleViewport);
 
+    // Lock body scrolling completely so mobile browser cannot scroll the background
+    const prevOverflow = document.body.style.overflow;
+    const prevPosition = document.body.style.position;
+    const prevWidth = document.body.style.width;
+    const prevHeight = document.body.style.height;
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
+    window.scrollTo(0, 0);
+
     return () => {
       if (window.visualViewport) {
         window.visualViewport.removeEventListener('resize', handleViewport);
         window.visualViewport.removeEventListener('scroll', handleViewport);
       }
       window.removeEventListener('resize', handleViewport);
+
+      document.body.style.overflow = prevOverflow;
+      document.body.style.position = prevPosition;
+      document.body.style.width = prevWidth;
+      document.body.style.height = prevHeight;
     };
   }, []);
 
@@ -381,14 +404,16 @@ export const WhatsAppChatPage = ({ onBack }) => {
   return (
     <div
       style={{
-        height: `${viewportHeight}px`,
-        maxHeight: `${viewportHeight}px`,
         position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
+        bottom: 0,
+        height: isKeyboardOpen && viewportHeight ? `${viewportHeight}px` : '100dvh',
+        maxHeight: isKeyboardOpen && viewportHeight ? `${viewportHeight}px` : '100dvh',
+        width: '100vw',
       }}
-      className={`w-full flex flex-col font-sans overflow-hidden select-none transition-colors duration-700 ${
+      className={`flex flex-col font-sans overflow-hidden select-none transition-colors duration-700 ${
         isDarkTheme ? chatTheme.pageBgDark : chatTheme.pageBgLight
       }`}
     >
@@ -703,7 +728,9 @@ export const WhatsAppChatPage = ({ onBack }) => {
           e.preventDefault();
           handleSend();
         }}
-        className={`shrink-0 w-full p-2 sm:p-2.5 flex items-center gap-2 border-t z-30 select-text pb-[max(0.6rem,env(safe-area-inset-bottom))] transition-colors shadow-lg ${
+        className={`shrink-0 w-full px-2 py-1.5 sm:p-2.5 flex items-center gap-2 border-t z-30 select-text ${
+          isKeyboardOpen ? 'pb-1.5' : 'pb-[max(0.6rem,env(safe-area-inset-bottom))]'
+        } transition-colors shadow-lg ${
           isDarkTheme ? chatTheme.headerDark : chatTheme.headerLight
         }`}
       >
@@ -740,10 +767,10 @@ export const WhatsAppChatPage = ({ onBack }) => {
             value={text}
             onChange={handleInputChange}
             onFocus={() => {
-              setTimeout(scrollToBottom, 150);
+              setTimeout(scrollToBottom, 200);
             }}
             placeholder={`Message ${partnerName}...`}
-            className="flex-1 bg-transparent border-0 focus:outline-hidden text-sm sm:text-base placeholder:text-slate-400 select-text cursor-text min-w-0"
+            className="flex-1 bg-transparent border-0 focus:outline-hidden text-base placeholder:text-slate-400 select-text cursor-text min-w-0 py-1"
           />
 
           {/* Quick Heart Button */}

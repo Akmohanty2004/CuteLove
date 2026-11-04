@@ -568,7 +568,7 @@ export const RealtimeChat = ({ theme, onBackToFeed }) => {
                   setTimeout(scrollToBottom, 150);
                 }}
                 placeholder={`Message ${partnerName}...`}
-                className="flex-1 bg-transparent border-0 focus:outline-hidden text-xs sm:text-sm placeholder:text-slate-400 select-text cursor-text min-w-0"
+                className="flex-1 bg-transparent border-0 focus:outline-hidden text-base placeholder:text-slate-400 select-text cursor-text min-w-0 py-1"
               />
             </div>
 

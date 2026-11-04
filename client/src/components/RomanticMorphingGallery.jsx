@@ -147,7 +147,8 @@ export const RomanticMorphingGallery = () => {
   const [speedMultiplier, setSpeedMultiplier] = useState(1); // 0.5 (gentle), 1 (normal), 1.8 (rush)
   const [selectedImage, setSelectedImage] = useState(null);
   const [hoveredCardId, setHoveredCardId] = useState(null);
-  const [orbitAngle, setOrbitAngle] = useState(0);
+  const orbitAngleRef = useRef(0);
+  const satelliteRefs = useRef([]);
 
   // 3D Tilt perspective state
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -273,7 +274,35 @@ export const RomanticMorphingGallery = () => {
     }
   };
 
-  // Continuous 3D orbit rotation loop with speedMultiplier & smooth requestAnimationFrame
+  // Direct DOM 3D Orbit Transform - Silky-Smooth GPU rendering without continuous React state churn
+  const applyOrbitTransforms = (currentAngle) => {
+    if (!orbitItems || orbitItems.length === 0) return;
+    const count = orbitItems.length;
+    for (let idx = 0; idx < count; idx++) {
+      const el = satelliteRefs.current[idx];
+      if (!el) continue;
+      const theta = currentAngle + (idx * (Math.PI * 2)) / count;
+      const x = Math.cos(theta) * rx;
+      const y = Math.sin(theta) * ry;
+      const depthNorm = (Math.sin(theta) + 1) / 2;
+      const isHovered = hoveredCardId === orbitItems[idx]?._id;
+      const scale = (0.62 + depthNorm * 0.48) * (isHovered ? 1.25 : 1);
+      const opacity = isHovered ? 1 : 0.4 + depthNorm * 0.6;
+      const zIndex = isHovered ? 40 : Math.round(depthNorm * 35);
+
+      el.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0px) scale(${scale.toFixed(3)})`;
+      el.style.zIndex = zIndex;
+      el.style.opacity = opacity.toFixed(2);
+      el.style.filter = depthNorm < 0.25 && !isHovered ? 'blur(1px)' : 'none';
+    }
+  };
+
+  // Synchronize on mount, resize, and hover changes
+  useEffect(() => {
+    applyOrbitTransforms(orbitAngleRef.current);
+  }, [rx, ry, orbitItems.length, hoveredCardId]);
+
+  // Continuous 3D orbit rotation loop with speedMultiplier & smooth 60/120fps requestAnimationFrame
   useEffect(() => {
     if (!isPlaying || viewMode !== 'orbit' || hoveredCardId !== null || isDragging) return;
     let animId;
@@ -281,19 +310,20 @@ export const RomanticMorphingGallery = () => {
     const rotate = (currentTime) => {
       const delta = Math.min((currentTime - lastTime) / 1000, 0.1);
       lastTime = currentTime;
-      setOrbitAngle((prev) => (prev + 0.25 * speedMultiplier * delta) % (Math.PI * 2));
+      orbitAngleRef.current = (orbitAngleRef.current + 0.25 * speedMultiplier * delta) % (Math.PI * 2);
+      applyOrbitTransforms(orbitAngleRef.current);
       animId = requestAnimationFrame(rotate);
     };
     animId = requestAnimationFrame(rotate);
     return () => cancelAnimationFrame(animId);
-  }, [isPlaying, viewMode, hoveredCardId, isDragging, speedMultiplier]);
+  }, [isPlaying, viewMode, hoveredCardId, isDragging, speedMultiplier, rx, ry, orbitItems.length]);
 
   // Pointer drag to spin the 3D orbit manually
   const handlePointerDown = (e) => {
     if (viewMode !== 'orbit') return;
     setIsDragging(true);
     dragStartX.current = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-    dragStartAngle.current = orbitAngle;
+    dragStartAngle.current = orbitAngleRef.current;
   };
 
   const handlePointerMove = (e) => {
@@ -311,15 +341,19 @@ export const RomanticMorphingGallery = () => {
     }
     const currentX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
     const deltaX = currentX - dragStartX.current;
-    // 300px drag equals ~ full rotation
-    const newAngle = dragStartAngle.current + (deltaX / 180);
-    setOrbitAngle(newAngle);
+    orbitAngleRef.current = dragStartAngle.current + (deltaX / 180);
+    applyOrbitTransforms(orbitAngleRef.current);
   };
 
   const handlePointerUp = () => {
     if (isDragging) {
       setIsDragging(false);
     }
+  };
+
+  const handleRotateStep = (dir) => {
+    orbitAngleRef.current += dir * 0.4;
+    applyOrbitTransforms(orbitAngleRef.current);
   };
 
   // Animated Cosmic Illustration Background
@@ -766,7 +800,7 @@ export const RomanticMorphingGallery = () => {
                 whileTap={{ scale: 0.9 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setOrbitAngle((prev) => prev - 0.4);
+                  handleRotateStep(-1);
                 }}
                 title="Rotate Left"
                 className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
@@ -779,7 +813,7 @@ export const RomanticMorphingGallery = () => {
                 whileTap={{ scale: 0.9 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setOrbitAngle((prev) => prev + 0.4);
+                  handleRotateStep(1);
                 }}
                 title="Rotate Right"
                 className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
@@ -817,28 +851,12 @@ export const RomanticMorphingGallery = () => {
             {/* ==================================================== */}
             {orbitItems.map((item, idx) => {
               const shape = SHAPES[idx % SHAPES.length];
-              const theta = orbitAngle + (idx * (Math.PI * 2)) / orbitItems.length;
-
-              // Elliptical 3D Projection
-              const x = Math.cos(theta) * rx;
-              const y = Math.sin(theta) * ry;
-
-              // Depth calculation: items in front are larger, brighter with higher z-index
-              const depthNorm = (Math.sin(theta) + 1) / 2; // 0 (back) to 1 (front)
-              const scale = 0.62 + depthNorm * 0.48;
-              const opacity = 0.4 + depthNorm * 0.6;
-              const zIndex = Math.round(depthNorm * 35);
-              const isHovered = hoveredCardId === item._id;
 
               return (
                 <div
                   key={item._id}
+                  ref={(el) => (satelliteRefs.current[idx] = el)}
                   style={{
-                    transform: `translate3d(${x}px, ${y}px, 0px) scale(${isHovered ? scale * 1.25 : scale})`,
-                    zIndex: isHovered ? 40 : zIndex,
-                    opacity: isHovered ? 1 : opacity,
-                    filter: depthNorm < 0.25 && !isHovered ? 'blur(1px)' : 'none',
-                    transition: isDragging || isPlaying ? 'opacity 0.2s ease-out' : 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease-out',
                     willChange: 'transform, opacity',
                   }}
                   onMouseEnter={() => {
