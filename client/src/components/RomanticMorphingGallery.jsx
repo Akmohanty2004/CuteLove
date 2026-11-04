@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
@@ -147,8 +147,7 @@ export const RomanticMorphingGallery = () => {
   const [speedMultiplier, setSpeedMultiplier] = useState(1); // 0.5 (gentle), 1 (normal), 1.8 (rush)
   const [selectedImage, setSelectedImage] = useState(null);
   const [hoveredCardId, setHoveredCardId] = useState(null);
-  const orbitAngleRef = useRef(0);
-  const satelliteRefs = useRef([]);
+  const [orbitAngle, setOrbitAngle] = useState(0);
 
   // 3D Tilt perspective state
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -193,7 +192,12 @@ export const RomanticMorphingGallery = () => {
   });
 
   // Responsive arena dimensions
-  const [arenaWidth, setArenaWidth] = useState(700);
+  const [arenaWidth, setArenaWidth] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return Math.min(window.innerWidth - 32, 700);
+    }
+    return 360;
+  });
 
   useEffect(() => {
     const handleResize = () => {
@@ -232,35 +236,36 @@ export const RomanticMorphingGallery = () => {
   }, []);
 
   // Combine real user memories, custom added, and fallbacks (excluding removed IDs)
-  const allImages = [
-    ...(localAddedMemories || []),
-    ...(dashboardFeed || []),
-    ...(vaultMemories || []),
-  ];
+  const galleryItems = useMemo(() => {
+    const allImages = [
+      ...(localAddedMemories || []),
+      ...(dashboardFeed || []),
+      ...(vaultMemories || []),
+    ];
 
-  // Deduplicate by _id
-  const uniqueMemoryMap = new Map();
-  allImages.forEach((img) => {
-    if (img && img._id && !removedImageIds.includes(img._id)) {
-      uniqueMemoryMap.set(img._id, img);
-    }
-  });
+    const uniqueMemoryMap = new Map();
+    allImages.forEach((img) => {
+      if (img && img._id && !removedImageIds.includes(img._id)) {
+        uniqueMemoryMap.set(img._id, img);
+      }
+    });
 
-  INITIAL_FALLBACK_MEMORIES.forEach((sample) => {
-    if (!removedImageIds.includes(sample._id) && !uniqueMemoryMap.has(sample._id)) {
-      uniqueMemoryMap.set(sample._id, sample);
-    }
-  });
+    INITIAL_FALLBACK_MEMORIES.forEach((sample) => {
+      if (!removedImageIds.includes(sample._id) && !uniqueMemoryMap.has(sample._id)) {
+        uniqueMemoryMap.set(sample._id, sample);
+      }
+    });
 
-  const galleryItems = Array.from(uniqueMemoryMap.values());
+    return Array.from(uniqueMemoryMap.values());
+  }, [localAddedMemories, dashboardFeed, vaultMemories, removedImageIds]);
 
   // Up to 8 celestial satellite positions for 3D Orbit View
-  const orbitItems = galleryItems.slice(0, 8);
+  const orbitItems = useMemo(() => galleryItems.slice(0, 8), [galleryItems]);
 
   // Responsive 3D Radii calculation
   const isMobile = arenaWidth < 640;
   const isTablet = arenaWidth >= 640 && arenaWidth < 1024;
-  const rx = isMobile ? Math.min(arenaWidth * 0.40, 140) : isTablet ? 220 : 310;
+  const rx = isMobile ? Math.min(arenaWidth * 0.38, 145) : isTablet ? 220 : 310;
   const ry = isMobile ? Math.min(arenaWidth * 0.22, 75) : isTablet ? 110 : 140;
 
   // Web Audio crystalline celestial chime
@@ -283,35 +288,7 @@ export const RomanticMorphingGallery = () => {
     }
   };
 
-  // Direct DOM 3D Orbit Transform - Silky-Smooth GPU rendering without continuous React state churn
-  const applyOrbitTransforms = (currentAngle) => {
-    if (!orbitItems || orbitItems.length === 0) return;
-    const count = orbitItems.length;
-    for (let idx = 0; idx < count; idx++) {
-      const el = satelliteRefs.current[idx];
-      if (!el) continue;
-      const theta = currentAngle + (idx * (Math.PI * 2)) / count;
-      const x = Math.cos(theta) * rx;
-      const y = Math.sin(theta) * ry;
-      const depthNorm = (Math.sin(theta) + 1) / 2;
-      const isHovered = hoveredCardId === orbitItems[idx]?._id;
-      const scale = (0.62 + depthNorm * 0.48) * (isHovered ? 1.25 : 1);
-      const opacity = isHovered ? 1 : 0.4 + depthNorm * 0.6;
-      const zIndex = isHovered ? 40 : Math.round(depthNorm * 35);
-
-      el.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0px) scale(${scale.toFixed(3)})`;
-      el.style.zIndex = zIndex;
-      el.style.opacity = opacity.toFixed(2);
-      el.style.filter = depthNorm < 0.25 && !isHovered ? 'blur(1px)' : 'none';
-    }
-  };
-
-  // Synchronize on mount, resize, and hover changes
-  useEffect(() => {
-    applyOrbitTransforms(orbitAngleRef.current);
-  }, [rx, ry, orbitItems.length, hoveredCardId]);
-
-  // Continuous 3D orbit rotation loop with speedMultiplier & smooth 60/120fps requestAnimationFrame
+  // Continuous 3D orbit rotation loop with speedMultiplier & smooth requestAnimationFrame
   useEffect(() => {
     if (!isPlaying || viewMode !== 'orbit' || hoveredCardId !== null || isDragging) return;
     let animId;
@@ -319,20 +296,19 @@ export const RomanticMorphingGallery = () => {
     const rotate = (currentTime) => {
       const delta = Math.min((currentTime - lastTime) / 1000, 0.1);
       lastTime = currentTime;
-      orbitAngleRef.current = (orbitAngleRef.current + 0.25 * speedMultiplier * delta) % (Math.PI * 2);
-      applyOrbitTransforms(orbitAngleRef.current);
+      setOrbitAngle((prev) => (prev + 0.22 * speedMultiplier * delta) % (Math.PI * 2));
       animId = requestAnimationFrame(rotate);
     };
     animId = requestAnimationFrame(rotate);
     return () => cancelAnimationFrame(animId);
-  }, [isPlaying, viewMode, hoveredCardId, isDragging, speedMultiplier, rx, ry, orbitItems.length]);
+  }, [isPlaying, viewMode, hoveredCardId, isDragging, speedMultiplier]);
 
   // Pointer drag to spin the 3D orbit manually
   const handlePointerDown = (e) => {
     if (viewMode !== 'orbit') return;
     setIsDragging(true);
     dragStartX.current = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-    dragStartAngle.current = orbitAngleRef.current;
+    dragStartAngle.current = orbitAngle;
   };
 
   const handlePointerMove = (e) => {
@@ -350,19 +326,13 @@ export const RomanticMorphingGallery = () => {
     }
     const currentX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
     const deltaX = currentX - dragStartX.current;
-    orbitAngleRef.current = dragStartAngle.current + (deltaX / 180);
-    applyOrbitTransforms(orbitAngleRef.current);
+    setOrbitAngle(dragStartAngle.current + deltaX / 160);
   };
 
   const handlePointerUp = () => {
     if (isDragging) {
       setIsDragging(false);
     }
-  };
-
-  const handleRotateStep = (dir) => {
-    orbitAngleRef.current += dir * 0.4;
-    applyOrbitTransforms(orbitAngleRef.current);
   };
 
   // Animated Cosmic Illustration Background
@@ -800,7 +770,7 @@ export const RomanticMorphingGallery = () => {
                 whileTap={{ scale: 0.9 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleRotateStep(-1);
+                  setOrbitAngle((prev) => prev - 0.4);
                 }}
                 title="Rotate Left"
                 className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
@@ -813,7 +783,7 @@ export const RomanticMorphingGallery = () => {
                 whileTap={{ scale: 0.9 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleRotateStep(1);
+                  setOrbitAngle((prev) => prev + 0.4);
                 }}
                 title="Rotate Right"
                 className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
@@ -851,12 +821,28 @@ export const RomanticMorphingGallery = () => {
             {/* ==================================================== */}
             {orbitItems.map((item, idx) => {
               const shape = SHAPES[idx % SHAPES.length];
+              const theta = orbitAngle + (idx * (Math.PI * 2)) / orbitItems.length;
+
+              // Elliptical 3D Projection
+              const x = Math.cos(theta) * rx;
+              const y = Math.sin(theta) * ry;
+
+              // Depth calculation: items in front are larger, brighter with higher z-index
+              const depthNorm = (Math.sin(theta) + 1) / 2; // 0 (back) to 1 (front)
+              const scale = 0.62 + depthNorm * 0.48;
+              const opacity = 0.4 + depthNorm * 0.6;
+              const zIndex = Math.round(depthNorm * 35);
+              const isHovered = hoveredCardId === item._id;
 
               return (
                 <div
                   key={item._id}
-                  ref={(el) => (satelliteRefs.current[idx] = el)}
                   style={{
+                    transform: `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0px) scale(${isHovered ? (scale * 1.25).toFixed(3) : scale.toFixed(3)})`,
+                    zIndex: isHovered ? 40 : zIndex,
+                    opacity: isHovered ? 1 : opacity.toFixed(2),
+                    filter: depthNorm < 0.25 && !isHovered ? 'blur(1px)' : 'none',
+                    transition: isDragging || isPlaying ? 'opacity 0.2s ease-out' : 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease-out',
                     willChange: 'transform, opacity',
                   }}
                   onMouseEnter={() => {
