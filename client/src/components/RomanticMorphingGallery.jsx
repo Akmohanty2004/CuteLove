@@ -32,6 +32,15 @@ import { useAuth } from '../context/AuthContext';
 import { MOOD_THEMES } from '../utils/moodThemes';
 import confetti from 'canvas-confetti';
 
+import couple1 from '../assets/couples/couple1.jpg';
+import couple2 from '../assets/couples/couple2.jpg';
+import couple3 from '../assets/couples/couple3.jpg';
+import couple4 from '../assets/couples/couple4.jpg';
+import couple5 from '../assets/couples/couple5.jpg';
+import couple6 from '../assets/couples/couple6.jpg';
+import couple7 from '../assets/couples/couple7.jpg';
+import couple8 from '../assets/couples/couple8.jpg';
+
 // 6 distinct artistic shapes with glowing borders for revolving memories
 const SHAPES = [
   {
@@ -78,58 +87,72 @@ const SHAPES = [
   },
 ];
 
-// Fallback high-res romantic moments
+// Fallback high-res romantic moments with real downloaded Hindi cinema couple moments
 const INITIAL_FALLBACK_MEMORIES = [
   {
     _id: 'sample-1',
-    url: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=1000&q=80',
+    url: couple1,
     caption: 'Our sunset walk by the shore. The golden sky had nothing on your smile.',
-    uploaderName: 'Ashis',
+    uploaderName: 'Majnu',
     date: '2020-09-10',
   },
   {
     _id: 'sample-2',
-    url: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=1000&q=80',
+    url: couple2,
     caption: 'Cozy coffee dates and endless conversations about our dreams.',
-    uploaderName: 'Kirti',
+    uploaderName: 'Laila',
     date: '2021-02-14',
   },
   {
     _id: 'sample-3',
-    url: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=1000&q=80',
+    url: couple3,
     caption: 'Holding hands under fairy lights. A magical night forever etched in our hearts.',
-    uploaderName: 'Ashis',
+    uploaderName: 'Majnu',
     date: '2021-10-09',
   },
   {
     _id: 'sample-4',
-    url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=1000&q=80',
+    url: couple4,
     caption: 'Laughing until our stomachs hurt in the autumn rain.',
-    uploaderName: 'Kirti',
+    uploaderName: 'Laila',
     date: '2022-09-10',
   },
   {
     _id: 'sample-5',
-    url: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1000&q=80',
+    url: couple5,
     caption: 'Your warmth makes every ordinary day feel like an extraordinary adventure.',
-    uploaderName: 'Ashis',
+    uploaderName: 'Majnu',
     date: '2023-01-01',
   },
   {
     _id: 'sample-6',
-    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1000&q=80',
+    url: couple6,
     caption: 'A candid smile that melted my heart in an instant.',
-    uploaderName: 'Kirti',
+    uploaderName: 'Laila',
     date: '2023-09-10',
+  },
+  {
+    _id: 'sample-7',
+    url: couple7,
+    caption: 'Together through every high and low, two souls in perfect harmony.',
+    uploaderName: 'Majnu',
+    date: '2024-02-14',
+  },
+  {
+    _id: 'sample-8',
+    url: couple8,
+    caption: 'Our forever sanctuary, where every moment is pure magic.',
+    uploaderName: 'Laila',
+    date: '2024-10-09',
   },
 ];
 
 const ROMANTIC_WHISPERS = [
-  "Ashis's world revolves around Kirti ❤️",
+  "Majnu's world revolves around Laila ❤️",
   'Two souls dancing in the eternal cosmos ✨',
   'In Love Since 10/09/2020 • Forever & Always 💍',
   'Every orbit brings us closer together 🌹',
-  'Ashis & Kirti • One Heartbeat, Two People 💕',
+  'Laila & Majnu • One Heartbeat, Two People 💕',
 ];
 
 export const RomanticMorphingGallery = () => {
@@ -168,14 +191,14 @@ export const RomanticMorphingGallery = () => {
   const [newImagePreview, setNewImagePreview] = useState('');
   const [newImageUrl, setNewImageUrl] = useState('');
   const [newCaption, setNewCaption] = useState('');
-  const [newUploader, setNewUploader] = useState(user?.displayName || 'Ashis');
+  const [newUploader, setNewUploader] = useState(user?.displayName || 'Majnu');
   const [addFeedback, setAddFeedback] = useState('');
   const fileInputRef = useRef(null);
 
   // Local storage for user-added URL images and hidden/deleted image IDs
   const [localAddedMemories, setLocalAddedMemories] = useState(() => {
     try {
-      const saved = localStorage.getItem('ashis_kirti_custom_3d_memories');
+      const saved = localStorage.getItem('laila_majnu_custom_3d_memories') || localStorage.getItem('ashis_kirti_custom_3d_memories');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -184,7 +207,7 @@ export const RomanticMorphingGallery = () => {
 
   const [removedImageIds, setRemovedImageIds] = useState(() => {
     try {
-      const saved = localStorage.getItem('ashis_kirti_hidden_3d_memories');
+      const saved = localStorage.getItem('laila_majnu_hidden_3d_memories') || localStorage.getItem('ashis_kirti_hidden_3d_memories');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -213,7 +236,7 @@ export const RomanticMorphingGallery = () => {
   // Save added and removed memories to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('ashis_kirti_custom_3d_memories', JSON.stringify(localAddedMemories));
+      localStorage.setItem('laila_majnu_custom_3d_memories', JSON.stringify(localAddedMemories));
     } catch (e) {
       console.error(e);
     }
@@ -221,7 +244,7 @@ export const RomanticMorphingGallery = () => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('ashis_kirti_hidden_3d_memories', JSON.stringify(removedImageIds));
+      localStorage.setItem('laila_majnu_hidden_3d_memories', JSON.stringify(removedImageIds));
     } catch (e) {
       console.error(e);
     }
@@ -585,9 +608,9 @@ export const RomanticMorphingGallery = () => {
               Living Memory Universe
             </span>
             <span className="text-xs font-bold text-rose-300 flex items-center gap-1.5 bg-rose-500/20 px-2.5 py-0.5 rounded-full border border-rose-400/30">
-              <span className="text-emerald-300">Ashis</span>
+              <span className="text-emerald-300">Majnu</span>
               <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500 animate-pulse" />
-              <span className="text-pink-300">Kirti</span>
+              <span className="text-pink-300">Laila</span>
             </span>
           </div>
 
@@ -722,13 +745,13 @@ export const RomanticMorphingGallery = () => {
             className="relative w-full h-full flex items-center justify-center"
           >
             {/* ==================================================== */}
-            {/* CENTRAL SMOOTH COUPLE PIECE: Ashis ❤️ Kirti Harmony Core */}
+            {/* CENTRAL SMOOTH COUPLE PIECE: Laila ❤️ Majnu Harmony Core */}
             {/* ==================================================== */}
             <motion.div
               onClick={handleCoupleHeartwave}
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.94 }}
-              title="Click to pulse Ashis & Kirti's Cosmic Love Wave!"
+              title="Click to pulse Laila & Majnu's Cosmic Love Wave!"
               className="absolute z-20 flex flex-col items-center justify-center text-center p-3 sm:p-5 rounded-full bg-gradient-to-tr from-rose-600/90 via-pink-600/80 to-amber-500/90 backdrop-blur-xl border-2 sm:border-4 border-white/50 shadow-[0_0_60px_rgba(244,63,94,0.7)] w-32 h-32 sm:w-44 sm:h-44 md:w-52 md:h-52 cursor-pointer transition-shadow"
             >
               {/* Outer Counter-Rotating Celestial Rings */}
@@ -743,19 +766,19 @@ export const RomanticMorphingGallery = () => {
                 className="absolute -inset-5 sm:-inset-7 rounded-full border border-dotted border-rose-300/40 pointer-events-none"
               />
 
-              {/* Couple Dual Initials Pill (Ashis & Kirti) */}
+              {/* Couple Dual Initials Pill (Laila & Majnu) */}
               <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
-                <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-500/80 border border-emerald-300 text-white font-black text-xs sm:text-sm flex items-center justify-center shadow-md">
-                  A
+                <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-rose-500/80 border border-rose-300 text-white font-black text-xs sm:text-sm flex items-center justify-center shadow-md">
+                  L
                 </span>
                 <Heart className="w-5 h-5 sm:w-7 sm:h-7 fill-white text-white drop-shadow-lg animate-heartbeat" />
-                <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-rose-500/80 border border-rose-300 text-white font-black text-xs sm:text-sm flex items-center justify-center shadow-md">
-                  K
+                <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-500/80 border border-emerald-300 text-white font-black text-xs sm:text-sm flex items-center justify-center shadow-md">
+                  M
                 </span>
               </div>
 
               <h4 className="text-xs sm:text-base font-serif font-black tracking-tight text-white drop-shadow-md">
-                Ashis &amp; Kirti
+                Laila &amp; Majnu
               </h4>
 
               <span className="text-[9px] sm:text-[10px] font-bold text-amber-200 mt-0.5 uppercase tracking-wider bg-black/25 px-2 py-0.5 rounded-full border border-amber-200/30">
@@ -1097,7 +1120,7 @@ export const RomanticMorphingGallery = () => {
                   </h3>
                 </div>
                 <p className="text-xs text-slate-300">
-                  Add photos that smoothly join Ashis &amp; Kirti's revolving constellation.
+                  Add photos that smoothly join Laila &amp; Majnu's revolving constellation.
                 </p>
               </div>
 
@@ -1221,7 +1244,7 @@ export const RomanticMorphingGallery = () => {
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-slate-300 font-semibold">Added by:</span>
                   <div className="flex items-center gap-2">
-                    {['Ashis', 'Kirti'].map((name) => (
+                    {['Majnu', 'Laila'].map((name) => (
                       <button
                         key={name}
                         type="button"
@@ -1382,7 +1405,7 @@ export const RomanticMorphingGallery = () => {
                     "{selectedImage.caption}"
                   </p>
                   <p className="text-xs text-rose-300/80 mt-1">
-                    Captured by {selectedImage.uploaderName} • Ashis &amp; Kirti Love Universe
+                    Captured by {selectedImage.uploaderName} • Laila &amp; Majnu Love Universe
                   </p>
                 </div>
               )}

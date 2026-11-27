@@ -64,11 +64,14 @@ export const updateMood = async (req, res) => {
 
       // 3. Cheer Up Alert banner trigger if sad or gussa
       if (mood === 'sad' || mood === 'gussa') {
-        const partnerName = user.username.toLowerCase() === 'ashis' ? 'Kirti' : 'Ashis';
-        const partnerUser = user.username.toLowerCase() === 'ashis' ? 'kirti' : 'ashis';
+        const isMajnu = user.username.toLowerCase() === 'ashis' || user.username.toLowerCase() === 'majnu';
+        const partnerName = isMajnu ? 'Laila' : 'Majnu';
+        const partnerUser = isMajnu ? 'laila' : 'majnu';
+        const pronoun = (user.displayName === 'Majnu' || user.displayName === 'Ashis') ? 'him' : 'her';
+        const posPronoun = (user.displayName === 'Majnu' || user.displayName === 'Ashis') ? 'his' : 'her';
         const bannerMessage = mood === 'sad'
-          ? `Hello ${partnerName}, ${user.displayName} is feeling sad. Go send some warm love and cheer ${user.displayName === 'Ashis' ? 'him' : 'her'} up! 🥺❤️`
-          : `Hello ${partnerName}, ${user.displayName} is feeling gussa! Go melt ${user.displayName === 'Ashis' ? 'his' : 'her'} heart with extra cuddles! 😤💕`;
+          ? `Hello ${partnerName}, ${user.displayName} is feeling sad. Go send some warm love and cheer ${pronoun} up! 🥺❤️`
+          : `Hello ${partnerName}, ${user.displayName} is feeling gussa! Go melt ${posPronoun} heart with extra cuddles! 😤💕`;
 
         io.emit('cheer_up_alert', {
           fromUser: user.username,
@@ -98,8 +101,8 @@ export const updateMood = async (req, res) => {
 // @route   GET /api/moods/current
 export const getCurrentMoods = async (req, res) => {
   try {
-    const ashis = await User.findOne({ username: 'ashis' }).select('displayName currentMood lastMoodUpdate avatar customStatus');
-    const kirti = await User.findOne({ username: 'kirti' }).select('displayName currentMood lastMoodUpdate avatar customStatus');
+    const ashis = await User.findOne({ username: { $in: ['ashis', 'majnu'] } }).select('displayName currentMood lastMoodUpdate avatar customStatus');
+    const kirti = await User.findOne({ username: { $in: ['kirti', 'laila'] } }).select('displayName currentMood lastMoodUpdate avatar customStatus');
 
     return res.status(200).json({
       success: true,
@@ -133,8 +136,8 @@ export const getMoodTimeline = async (req, res) => {
         username: log.username,
         mood: log.mood,
         score: MOOD_LEVELS[log.mood] || 3,
-        ashisScore: log.username === 'ashis' ? MOOD_LEVELS[log.mood] : undefined,
-        kirtiScore: log.username === 'kirti' ? MOOD_LEVELS[log.mood] : undefined,
+        ashisScore: (log.username === 'ashis' || log.username === 'majnu') ? MOOD_LEVELS[log.mood] : undefined,
+        kirtiScore: (log.username === 'kirti' || log.username === 'laila') ? MOOD_LEVELS[log.mood] : undefined,
         note: log.note || '',
       };
     });

@@ -68,7 +68,7 @@ export const SettingsModal = ({ isOpen, onClose }) => {
             </h3>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Private configuration for Ashis and Kirti
+            Private configuration for Laila and Majnu
           </p>
         </div>
 

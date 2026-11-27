@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
   const [sessionDaysRemaining, setSessionDaysRemaining] = useState(30);
   const [sessionExpiresAt, setSessionExpiresAt] = useState(null);
   const [activeMoodTheme, setActiveMoodThemeState] = useState(() => {
-    return localStorage.getItem('ashis_kirti_active_mood') || 'happy';
+    return localStorage.getItem('laila_majnu_active_mood') || localStorage.getItem('ashis_kirti_active_mood') || 'happy';
   });
   const [currentPage, setCurrentPage] = useState('dashboard'); // 'dashboard' | 'whatsapp'
   const [isLoading, setIsLoading] = useState(true);
@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
   const setActiveMoodTheme = (mood) => {
     if (!mood) return;
     try {
-      localStorage.setItem('ashis_kirti_active_mood', mood);
+      localStorage.setItem('laila_majnu_active_mood', mood);
     } catch (e) {
       // ignore
     }
@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }) => {
         setSessionDaysRemaining(res.data.user.sessionDaysRemaining ?? 30);
         setSessionExpiresAt(res.data.user.sessionExpiresAt);
 
-        // Compute the latest active mood between Ashis and Kirti based on most recent update timestamp
+        // Compute the latest active mood between Laila and Majnu based on most recent update timestamp
         const userTime = res.data.user?.lastMoodUpdate ? new Date(res.data.user.lastMoodUpdate).getTime() : 0;
         const partnerTime = res.data.partner?.lastMoodUpdate ? new Date(res.data.partner.lastMoodUpdate).getTime() : 0;
 

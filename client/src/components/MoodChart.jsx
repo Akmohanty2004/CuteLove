@@ -39,8 +39,8 @@ const MOOD_META = {
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
-    const ashisMeta = data.ashisScore ? MOOD_META[Math.round(data.ashisScore)] : null;
-    const kirtiMeta = data.kirtiScore ? MOOD_META[Math.round(data.kirtiScore)] : null;
+    const ashisMeta = (data.ashisScore !== undefined ? data.ashisScore : data.majnuScore) ? MOOD_META[Math.round(data.ashisScore || data.majnuScore)] : null;
+    const kirtiMeta = (data.kirtiScore !== undefined ? data.kirtiScore : data.lailaScore) ? MOOD_META[Math.round(data.kirtiScore || data.lailaScore)] : null;
 
     return (
       <div className="p-4 rounded-2xl shadow-2xl backdrop-blur-xl bg-slate-950/92 border-2 border-rose-500/40 text-white text-xs min-w-[210px] space-y-2.5">
@@ -55,13 +55,13 @@ const CustomTooltip = ({ active, payload, label }) => {
         </div>
 
         <div className="space-y-2">
-          {data.ashisScore !== undefined && (
+          {(data.ashisScore !== undefined || data.majnuScore !== undefined) && (
             <div className="flex items-center justify-between gap-3 p-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30">
               <span className="flex items-center gap-1.5 font-bold text-emerald-300">
                 <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-black">
-                  A
+                  M
                 </span>
-                <span>Ashis</span>
+                <span>Majnu</span>
               </span>
               <span className="font-bold text-emerald-200">
                 {ashisMeta?.emoji} {ashisMeta?.label}
@@ -69,13 +69,13 @@ const CustomTooltip = ({ active, payload, label }) => {
             </div>
           )}
 
-          {data.kirtiScore !== undefined && (
+          {(data.kirtiScore !== undefined || data.lailaScore !== undefined) && (
             <div className="flex items-center justify-between gap-3 p-1.5 rounded-xl bg-rose-500/15 border border-rose-500/30">
               <span className="flex items-center gap-1.5 font-bold text-rose-300">
                 <span className="w-4 h-4 rounded-full bg-rose-500 text-white flex items-center justify-center text-[10px] font-black">
-                  K
+                  L
                 </span>
-                <span>Kirti</span>
+                <span>Laila</span>
               </span>
               <span className="font-bold text-rose-200">
                 {kirtiMeta?.emoji} {kirtiMeta?.label}
@@ -173,7 +173,7 @@ export const MoodChart = () => {
             </span>
           </div>
           <p className={`text-xs sm:text-sm font-serif italic ${theme.subText}`}>
-            Continuous emotional resonance graph tracking Ashis &amp; Kirti's shared heartbeats over time.
+            Continuous emotional resonance graph tracking Laila &amp; Majnu's shared heartbeats over time.
           </p>
         </div>
 
@@ -234,14 +234,14 @@ export const MoodChart = () => {
           </p>
         </div>
 
-        {/* Card 2: Ashis Mood Trend */}
+        {/* Card 2: Majnu Mood Trend */}
         <div className="p-3.5 rounded-2xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-emerald-500/20 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs font-bold text-emerald-500 mb-1">
             <span className="flex items-center gap-1">
               <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] font-black">
-                A
+                M
               </span>
-              <span>Ashis</span>
+              <span>Majnu</span>
             </span>
             <span className="text-sm">{stats.ashisAvg.emoji}</span>
           </div>
@@ -253,14 +253,14 @@ export const MoodChart = () => {
           </p>
         </div>
 
-        {/* Card 3: Kirti Mood Trend */}
+        {/* Card 3: Laila Mood Trend */}
         <div className="p-3.5 rounded-2xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-rose-500/20 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs font-bold text-rose-500 mb-1">
             <span className="flex items-center gap-1">
               <span className="w-3.5 h-3.5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[9px] font-black">
-                K
+                L
               </span>
-              <span>Kirti</span>
+              <span>Laila</span>
             </span>
             <span className="text-sm">{stats.kirtiAvg.emoji}</span>
           </div>
@@ -376,11 +376,11 @@ export const MoodChart = () => {
                 }}
               />
 
-              {/* Ashis Emotional Wave Area */}
+              {/* Majnu Emotional Wave Area */}
               <Area
                 type="monotone"
                 dataKey="ashisScore"
-                name="Ashis (Emerald Sync)"
+                name="Majnu (Emerald Sync)"
                 stroke="#10b981"
                 strokeWidth={3}
                 fillOpacity={1}
@@ -394,11 +394,11 @@ export const MoodChart = () => {
                 connectNulls
               />
 
-              {/* Kirti Emotional Wave Area */}
+              {/* Laila Emotional Wave Area */}
               <Area
                 type="monotone"
                 dataKey="kirtiScore"
-                name="Kirti (Rose Radiance)"
+                name="Laila (Rose Radiance)"
                 stroke="#f43f5e"
                 strokeWidth={3}
                 fillOpacity={1}

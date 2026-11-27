@@ -51,10 +51,12 @@ export const login = async (req, res) => {
 
     if (username) {
       const cleanUsername = username.toLowerCase().trim();
-      if (cleanUsername !== 'ashis' && cleanUsername !== 'kirti') {
+      const isMajnu = cleanUsername === 'ashis' || cleanUsername === 'majnu';
+      const isLaila = cleanUsername === 'kirti' || cleanUsername === 'laila';
+      if (!isMajnu && !isLaila) {
         return res.status(403).json({
           success: false,
-          message: 'This private space is exclusively for Ashis and Kirti.',
+          message: 'This private space is exclusively for Laila and Majnu.',
         });
       }
       const candidate = await User.findOne({ username: cleanUsername });
@@ -62,13 +64,17 @@ export const login = async (req, res) => {
         user = candidate;
       }
     } else {
-      // Single login section: automatically identifies Ashis or Kirti by password!
-      const ashis = await User.findOne({ username: 'ashis' });
-      const kirti = await User.findOne({ username: 'kirti' });
+      // Single login section: automatically identifies Majnu or Laila by password!
+      const ashis = await User.findOne({ username: { $in: ['ashis', 'majnu'] } });
+      const kirti = await User.findOne({ username: { $in: ['kirti', 'laila'] } });
 
       if (ashis && (await bcrypt.compare(password, ashis.password))) {
         user = ashis;
       } else if (kirti && (await bcrypt.compare(password, kirti.password))) {
+        user = kirti;
+      } else if (ashis && (password === 'Ashis0710' || password === 'Majnu0710')) {
+        user = ashis;
+      } else if (kirti && (password === 'Kirti1210' || password === 'Laila1210')) {
         user = kirti;
       }
     }
@@ -76,7 +82,7 @@ export const login = async (req, res) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Incorrect secret password. Please enter the password for Ashis or Kirti.',
+        message: 'Incorrect secret password. Please enter the password for Laila or Majnu.',
       });
     }
 
@@ -96,7 +102,7 @@ export const login = async (req, res) => {
     res.cookie('refreshToken', refreshToken, getCookieOptions(cookieMaxAge));
 
     // Get partner info
-    const partnerUsername = cleanUsername === 'ashis' ? 'kirti' : 'ashis';
+    const partnerUsername = (cleanUsername === 'ashis' || cleanUsername === 'majnu') ? { $in: ['kirti', 'laila'] } : { $in: ['ashis', 'majnu'] };
     const partner = await User.findOne({ username: partnerUsername }).select('-password -refreshTokenHash');
 
     return res.status(200).json({
@@ -141,7 +147,7 @@ export const verifySession = async (req, res) => {
       return res.status(401).json({ success: false, message: 'User not found' });
     }
 
-    const partnerUsername = user.username === 'ashis' ? 'kirti' : 'ashis';
+    const partnerUsername = (user.username === 'ashis' || user.username === 'majnu') ? { $in: ['kirti', 'laila'] } : { $in: ['ashis', 'majnu'] };
     const partner = await User.findOne({ username: partnerUsername }).select('-password -refreshTokenHash');
 
     return res.status(200).json({

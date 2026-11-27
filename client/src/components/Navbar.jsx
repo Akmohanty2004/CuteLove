@@ -12,7 +12,7 @@ export const Navbar = ({ activeTab, setActiveTab, onOpenUpload, onOpenSettings }
   const [isAudioOn, setIsAudioOn] = useState(false);
 
   const theme = MOOD_THEMES[activeMoodTheme] || MOOD_THEMES.happy;
-  const partnerDisplayName = partner?.displayName || (user?.username === 'ashis' ? 'Kirti' : 'Ashis');
+  const partnerDisplayName = partner?.displayName || ((user?.username === 'ashis' || user?.username === 'majnu') ? 'Laila' : 'Majnu');
 
   const handleTabClick = (tabId) => {
     if (tabId === 'chat') {
@@ -51,7 +51,7 @@ export const Navbar = ({ activeTab, setActiveTab, onOpenUpload, onOpenSettings }
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 sm:gap-2 truncate">
               <span className={`font-serif font-bold text-base sm:text-xl md:text-2xl tracking-tight truncate transition-colors duration-700 ${theme.isDark ? 'text-white' : 'text-slate-800'}`}>
-                Ashis <span className="text-rose-500">&amp;</span> Kirti
+                Laila <span className="text-rose-500">&amp;</span> Majnu
               </span>
               <span className={`hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border transition-all duration-700 ${theme.badgeBg}`}>
                 <span>{theme.emoji}</span>

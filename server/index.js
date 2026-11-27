@@ -84,7 +84,7 @@ app.use('/api/messages', messageRoutes);
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
-    app: 'Ashis & Kirti Private Memory Space',
+    app: 'Laila & Majnu Private Memory Space',
     timestamp: new Date().toISOString(),
   });
 });
@@ -133,7 +133,7 @@ const startServer = async () => {
   try {
     await connectDB();
     server.listen(PORT, () => {
-      console.log(`✨ Ashis & Kirti Love Space Server running on port ${PORT}`);
+      console.log(`✨ Laila & Majnu Love Space Server running on port ${PORT}`);
       console.log(`🔒 30-Day Session Persistence Active with HTTP-Only Cookies`);
     });
   } catch (err) {

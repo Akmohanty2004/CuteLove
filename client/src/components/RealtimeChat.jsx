@@ -134,8 +134,8 @@ export const RealtimeChat = ({ theme, onBackToFeed }) => {
     const tempId = `temp-${Date.now()}`;
     const optimisticMsg = {
       _id: tempId,
-      senderName: user?.displayName || 'Ashis',
-      recipientName: partner?.displayName || 'Kirti',
+      senderName: user?.displayName || 'Majnu',
+      recipientName: partner?.displayName || 'Laila',
       text: messageText,
       createdAt: new Date().toISOString(),
       isOptimistic: true,
@@ -199,7 +199,7 @@ export const RealtimeChat = ({ theme, onBackToFeed }) => {
   };
 
   const isDark = theme?.isDark;
-  const partnerName = partner?.displayName || (user?.username === 'ashis' ? 'Kirti' : 'Ashis');
+  const partnerName = partner?.displayName || ((user?.username === 'ashis' || user?.username === 'majnu') ? 'Laila' : 'Majnu');
 
   return (
     <motion.div

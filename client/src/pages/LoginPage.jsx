@@ -22,10 +22,10 @@ export const LoginPage = () => {
     setErrorMsg('');
 
     try {
-      // Single login section: sends password only; server automatically identifies Ashis or Kirti!
+      // Single login section: sends password only; server automatically identifies Majnu or Laila!
       await login(password.trim(), rememberMe);
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || err.message || 'Incorrect password for Ashis or Kirti.');
+      setErrorMsg(err.response?.data?.message || err.message || 'Incorrect password for Laila or Majnu.');
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +57,7 @@ export const LoginPage = () => {
             Exclusive Two-Person Sanctuary
           </span>
           <h2 className="text-2xl sm:text-3xl font-serif font-bold text-slate-800">
-            Ashis <span className="text-rose-500">&amp;</span> Kirti
+            Laila <span className="text-rose-500">&amp;</span> Majnu
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             Enter your secret password to unlock our shared space
@@ -151,14 +151,14 @@ export const LoginPage = () => {
                 onClick={() => handleQuickFill('Ashis0710')}
                 className="text-[11px] font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl border border-rose-200 cursor-pointer transition-colors"
               >
-                Ashis's Key (<code className="font-mono text-[10px]">Ashis0710</code>)
+                Majnu's Key (<code className="font-mono text-[10px]">Ashis0710</code>)
               </button>
               <button
                 type="button"
                 onClick={() => handleQuickFill('Kirti1210')}
                 className="text-[11px] font-medium text-pink-700 bg-pink-50 hover:bg-pink-100 px-3 py-1.5 rounded-xl border border-pink-200 cursor-pointer transition-colors"
               >
-                Kirti's Key (<code className="font-mono text-[10px]">Kirti1210</code>)
+                Laila's Key (<code className="font-mono text-[10px]">Kirti1210</code>)
               </button>
             </div>
           </div>

@@ -16,8 +16,9 @@ export const initSocket = (io) => {
       console.log(`💕 ${displayName} (${cleanUser}) entered couple space`);
 
       // Notify the other partner that this user is online
-      const partnerUser = cleanUser === 'ashis' ? 'kirti' : 'ashis';
-      const isPartnerOnline = onlineUsers.has(partnerUser);
+      const isMajnu = cleanUser === 'ashis' || cleanUser === 'majnu';
+      const partnerUsers = isMajnu ? ['kirti', 'laila'] : ['ashis', 'majnu'];
+      const isPartnerOnline = partnerUsers.some(p => onlineUsers.has(p));
 
       // Tell the connected user the partner's status
       socket.emit('presence_status', {
@@ -57,11 +58,14 @@ export const initSocket = (io) => {
 
       // Special Cheer-Up Banner Alert trigger
       if (mood === 'sad' || mood === 'gussa') {
-        const partnerName = username.toLowerCase() === 'ashis' ? 'Kirti' : 'Ashis';
-        const partnerUser = username.toLowerCase() === 'ashis' ? 'kirti' : 'ashis';
+        const isMajnu = username.toLowerCase() === 'ashis' || username.toLowerCase() === 'majnu';
+        const partnerName = isMajnu ? 'Laila' : 'Majnu';
+        const partnerUser = isMajnu ? 'laila' : 'majnu';
+        const pronoun = (displayName === 'Majnu' || displayName === 'Ashis') ? 'him' : 'her';
+        const posPronoun = (displayName === 'Majnu' || displayName === 'Ashis') ? 'his' : 'her';
         const bannerMessage = mood === 'sad'
-          ? `Hello ${partnerName}, ${displayName} is feeling sad. Go send some warm love and cheer ${displayName === 'Ashis' ? 'him' : 'her'} up! 🥺❤️`
-          : `Hello ${partnerName}, ${displayName} is feeling gussa! Go melt ${displayName === 'Ashis' ? 'his' : 'her'} heart with extra cuddles! 😤💕`;
+          ? `Hello ${partnerName}, ${displayName} is feeling sad. Go send some warm love and cheer ${pronoun} up! 🥺❤️`
+          : `Hello ${partnerName}, ${displayName} is feeling gussa! Go melt ${posPronoun} heart with extra cuddles! 😤💕`;
 
         socket.to('couple_space').emit('cheer_up_alert', {
           fromUser: username,

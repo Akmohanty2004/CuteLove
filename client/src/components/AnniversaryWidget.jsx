@@ -60,7 +60,7 @@ export const AnniversaryWidget = ({ gradient = 'from-rose-500 via-pink-600 to-ro
             </motion.span>
           </div>
           <h3 className="text-xl sm:text-3xl font-serif font-black tracking-tight drop-shadow-sm">
-            Ashis &amp; Kirti — Forever &amp; Always
+            Laila &amp; Majnu — Forever &amp; Always
           </h3>
           <p className="text-xs sm:text-sm text-rose-100/90 mt-1 max-w-md font-serif italic">
             "{elapsed.days.toLocaleString()} glorious days of holding hands, growing together, and loving you more each second."

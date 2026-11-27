@@ -91,45 +91,63 @@ export const connectDB = async () => {
 
 export const seedInitialData = async () => {
   try {
-    const ashisPasswordRaw = process.env.ASHIS_PASSWORD || 'Ashis0710';
-    const kirtiPasswordRaw = process.env.KIRTI_PASSWORD || 'Kirti1210';
+    const ashisPasswordRaw = process.env.ASHIS_PASSWORD || process.env.MAJNU_PASSWORD || 'Ashis0710';
+    const kirtiPasswordRaw = process.env.KIRTI_PASSWORD || process.env.LAILA_PASSWORD || 'Kirti1210';
 
-    const ashis = await User.findOne({ username: 'ashis' });
-    const kirti = await User.findOne({ username: 'kirti' });
+    let ashis = await User.findOne({ username: { $in: ['ashis', 'majnu'] } });
+    let kirti = await User.findOne({ username: { $in: ['kirti', 'laila'] } });
+
+    const ashisPasswordHash = await bcrypt.hash(ashisPasswordRaw, 10);
+    const kirtiPasswordHash = await bcrypt.hash(kirtiPasswordRaw, 10);
 
     if (!ashis || !kirti) {
-      console.log('🌱 Seeding exclusive couple users: Ashis & Kirti...');
-      
-      const ashisPasswordHash = await bcrypt.hash(ashisPasswordRaw, 10);
-      const kirtiPasswordHash = await bcrypt.hash(kirtiPasswordRaw, 10);
+      console.log('🌱 Seeding exclusive couple users: Laila & Majnu...');
 
       const newAshis = await User.findOneAndUpdate(
         { username: 'ashis' },
         {
           username: 'ashis',
-          displayName: 'Ashis',
+          displayName: 'Majnu',
           password: ashisPasswordHash,
           currentMood: 'happy',
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+          avatar: 'https://upload.wikimedia.org/wikipedia/commons/a/a7/Ranbir_Kapoor_and_Alia_Bhatt.jpg',
           customStatus: 'Loving you more every day ❤️',
           lastActive: new Date(),
         },
         { upsert: true, new: true }
       );
+    } else {
+      // Ensure display names are updated to Majnu and Laila
+      await User.updateMany({ username: { $in: ['ashis', 'majnu'] } }, { displayName: 'Majnu' });
+      await User.updateMany({ username: { $in: ['kirti', 'laila'] } }, { displayName: 'Laila' });
+    }
+
+    // Update existing memories uploaderName to Majnu & Laila
+    await Memory.updateMany({ uploaderName: 'Ashis' }, { uploaderName: 'Majnu' });
+    await Memory.updateMany({ uploaderName: 'Kirti' }, { uploaderName: 'Laila' });
 
       const newKirti = await User.findOneAndUpdate(
         { username: 'kirti' },
         {
           username: 'kirti',
-          displayName: 'Kirti',
+          displayName: 'Laila',
           password: kirtiPasswordHash,
           currentMood: 'happy',
-          avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+          avatar: 'https://upload.wikimedia.org/wikipedia/commons/0/03/Deepika_Padukone_and_Ranveer_Singh_reception.jpg',
           customStatus: 'Forever by your side ✨',
           lastActive: new Date(),
         },
         { upsert: true, new: true }
       );
+    } else {
+      // Ensure display names are updated to Majnu and Laila
+      await User.updateMany({ username: { $in: ['ashis', 'majnu'] } }, { displayName: 'Majnu' });
+      await User.updateMany({ username: { $in: ['kirti', 'laila'] } }, { displayName: 'Laila' });
+    }
+
+    // Update existing memories uploaderName to Majnu & Laila
+    await Memory.updateMany({ uploaderName: 'Ashis' }, { uploaderName: 'Majnu' });
+    await Memory.updateMany({ uploaderName: 'Kirti' }, { uploaderName: 'Laila' });
 
       // Seed initial mood logs
       const moodLogsCount = await MoodLog.countDocuments();

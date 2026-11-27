@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      enum: ['ashis', 'kirti'],
+      enum: ['ashis', 'kirti', 'majnu', 'laila'],
       lowercase: true,
       trim: true,
     },

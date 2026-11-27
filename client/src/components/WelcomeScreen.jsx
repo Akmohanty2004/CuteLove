@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Sparkles, ArrowRight } from 'lucide-react';
 
 const ROMANTIC_QUOTES = [
-  "Welcome to our world, Ashis & Kirti ✨",
+  "Welcome to our world, Laila & Majnu ✨",
   "Every love story is beautiful, but ours is my favorite ❤️",
   "You are my today and all of my tomorrows 🌹",
   "Two souls, one private universe 💫",
@@ -72,7 +72,7 @@ export const WelcomeScreen = ({ onComplete }) => {
           Exclusive Private Couple Space
         </span>
         <h1 className="text-4xl md:text-6xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-200 via-pink-100 to-amber-200 tracking-tight">
-          Ashis <span className="text-rose-400 font-normal cursive-font text-5xl md:text-7xl">&amp;</span> Kirti
+          Laila <span className="text-rose-400 font-normal cursive-font text-5xl md:text-7xl">&amp;</span> Majnu
         </h1>
       </motion.div>
 

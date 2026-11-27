@@ -287,7 +287,7 @@ export const StickyNoteWidget = () => {
             No secret sticky notes posted yet.
           </p>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Surprise {user?.username === 'ashis' ? 'Kirti' : 'Ashis'} with a sweet note above!
+            Surprise {(user?.username === 'ashis' || user?.username === 'majnu') ? 'Laila' : 'Majnu'} with a sweet note above!
           </p>
         </div>
       ) : (

@@ -126,20 +126,20 @@ export const MemoryVault = ({ onOpenUpload }) => {
             Both
           </button>
           <button
-            onClick={() => setUploader('ashis')}
+            onClick={() => setUploader('majnu')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
-              uploader === 'ashis' ? 'bg-rose-600 text-white shadow-xs' : theme.subText
+              uploader === 'majnu' || uploader === 'ashis' ? 'bg-rose-600 text-white shadow-xs' : theme.subText
             }`}
           >
-            Ashis
+            Majnu
           </button>
           <button
-            onClick={() => setUploader('kirti')}
+            onClick={() => setUploader('laila')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
-              uploader === 'kirti' ? 'bg-rose-600 text-white shadow-xs' : theme.subText
+              uploader === 'laila' || uploader === 'kirti' ? 'bg-rose-600 text-white shadow-xs' : theme.subText
             }`}
           >
-            Kirti
+            Laila
           </button>
         </div>
       </div>

@@ -9,7 +9,7 @@ const moodLogSchema = new mongoose.Schema(
     },
     username: {
       type: String,
-      enum: ['ashis', 'kirti'],
+      enum: ['ashis', 'kirti', 'majnu', 'laila'],
       required: true,
     },
     mood: {

@@ -1,7 +1,7 @@
 {
-  "name": "ashis-kirti-love-space",
+  "name": "laila-majnu-love-space",
   "version": "1.0.0",
-  "description": "Private couple memory space exclusively for Ashis and Kirti",
+  "description": "Private couple memory space exclusively for Laila and Majnu",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",

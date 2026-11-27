@@ -91,7 +91,14 @@ export const getVaultMemories = async (req, res) => {
       query.mediaType = mediaType;
     }
     if (uploader && uploader !== 'all') {
-      query.uploaderName = new RegExp(`^${uploader}$`, 'i');
+      const up = uploader.toLowerCase();
+      if (up === 'majnu' || up === 'ashis') {
+        query.uploaderName = /^(majnu|ashis)$/i;
+      } else if (up === 'laila' || up === 'kirti') {
+        query.uploaderName = /^(laila|kirti)$/i;
+      } else {
+        query.uploaderName = new RegExp(`^${uploader}$`, 'i');
+      }
     }
     if (search) {
       query.caption = { $regex: search, $options: 'i' };

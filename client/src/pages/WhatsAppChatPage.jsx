@@ -318,8 +318,8 @@ export const WhatsAppChatPage = ({ onBack }) => {
     const tempId = `temp-${Date.now()}`;
     const optimisticMsg = {
       _id: tempId,
-      senderName: user?.displayName || 'Ashis',
-      recipientName: partner?.displayName || 'Kirti',
+      senderName: user?.displayName || 'Majnu',
+      recipientName: partner?.displayName || 'Laila',
       text: messageText,
       createdAt: new Date().toISOString(),
       isOptimistic: true,
@@ -398,8 +398,8 @@ export const WhatsAppChatPage = ({ onBack }) => {
     }
   };
 
-  const partnerName = partner?.displayName || (user?.username === 'ashis' ? 'Kirti' : 'Ashis');
-  const myName = user?.displayName || (user?.username === 'ashis' ? 'Ashis' : 'Kirti');
+  const partnerName = partner?.displayName || ((user?.username === 'ashis' || user?.username === 'majnu') ? 'Laila' : 'Majnu');
+  const myName = user?.displayName || ((user?.username === 'ashis' || user?.username === 'majnu') ? 'Majnu' : 'Laila');
 
   return (
     <div
@@ -570,7 +570,7 @@ export const WhatsAppChatPage = ({ onBack }) => {
                 : 'bg-white/95 text-slate-700 border-slate-200'
             }`}
           >
-            Today • Ashis &amp; Kirti Private Haven ({chatTheme.name})
+            Today • Laila &amp; Majnu Private Haven ({chatTheme.name})
           </span>
         </div>
 

@@ -10,12 +10,12 @@ const messageSchema = new mongoose.Schema(
     senderName: {
       type: String,
       required: true,
-      enum: ['Ashis', 'Kirti'],
+      enum: ['Ashis', 'Kirti', 'Majnu', 'Laila'],
     },
     recipientName: {
       type: String,
       required: true,
-      enum: ['Ashis', 'Kirti'],
+      enum: ['Ashis', 'Kirti', 'Majnu', 'Laila'],
     },
     text: {
       type: String,

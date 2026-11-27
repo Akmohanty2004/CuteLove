@@ -36,7 +36,7 @@ export const App = () => {
             <Heart className="w-8 h-8 fill-rose-500" />
           </div>
           <p className="mt-4 text-xs font-serif italic text-rose-600">
-            Checking 30-day session for Ashis &amp; Kirti...
+            Checking 30-day session for Laila &amp; Majnu...
           </p>
         </div>
       ) : user ? (

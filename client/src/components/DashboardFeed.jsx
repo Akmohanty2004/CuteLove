@@ -23,42 +23,67 @@ import { useAuth } from '../context/AuthContext';
 import { MOOD_THEMES } from '../utils/moodThemes';
 import confetti from 'canvas-confetti';
 
-// Fallback high-resolution romantic moments if feed needs more memories
+import couple1 from '../assets/couples/couple1.jpg';
+import couple2 from '../assets/couples/couple2.jpg';
+import couple3 from '../assets/couples/couple3.jpg';
+import couple4 from '../assets/couples/couple4.jpg';
+import couple5 from '../assets/couples/couple5.jpg';
+import couple6 from '../assets/couples/couple6.jpg';
+
+// Fallback high-resolution romantic moments with real downloaded Hindi cinema couple moments
 const CURATED_ROMANTIC_MOMENTS = [
   {
     _id: 'feed-curated-1',
-    url: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=1200&q=85',
+    url: couple1,
     caption: 'Our golden hour by the shore. The ocean had nothing on the warmth in your eyes.',
-    uploaderName: 'Ashis',
+    uploaderName: 'Majnu',
     date: '2020-09-10',
-    likes: [{ user: 'Kirti' }, { user: 'Ashis' }],
+    likes: [{ user: 'Laila' }, { user: 'Majnu' }],
     mediaType: 'image',
   },
   {
     _id: 'feed-curated-2',
-    url: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=1200&q=85',
+    url: couple2,
     caption: 'Quiet coffee dates, whispered dreams, and losing track of time together.',
-    uploaderName: 'Kirti',
+    uploaderName: 'Laila',
     date: '2021-02-14',
-    likes: [{ user: 'Ashis' }],
+    likes: [{ user: 'Majnu' }],
     mediaType: 'image',
   },
   {
     _id: 'feed-curated-3',
-    url: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=1200&q=85',
+    url: couple3,
     caption: 'Hand in hand beneath the fairy lights. A night I would relive a thousand times.',
-    uploaderName: 'Ashis',
+    uploaderName: 'Majnu',
     date: '2021-10-09',
-    likes: [{ user: 'Kirti' }],
+    likes: [{ user: 'Laila' }],
     mediaType: 'image',
   },
   {
     _id: 'feed-curated-4',
-    url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=1200&q=85',
+    url: couple4,
     caption: 'Laughing so hard we couldn’t breathe. You are my purest source of joy.',
-    uploaderName: 'Kirti',
+    uploaderName: 'Laila',
     date: '2022-09-10',
-    likes: [{ user: 'Ashis' }, { user: 'Kirti' }],
+    likes: [{ user: 'Majnu' }, { user: 'Laila' }],
+    mediaType: 'image',
+  },
+  {
+    _id: 'feed-curated-5',
+    url: couple5,
+    caption: 'Your warmth makes every ordinary day feel like an extraordinary adventure.',
+    uploaderName: 'Majnu',
+    date: '2023-01-01',
+    likes: [{ user: 'Laila' }],
+    mediaType: 'image',
+  },
+  {
+    _id: 'feed-curated-6',
+    url: couple6,
+    caption: 'A candid smile that melted my heart in an instant.',
+    uploaderName: 'Laila',
+    date: '2023-09-10',
+    likes: [{ user: 'Majnu' }],
     mediaType: 'image',
   },
 ];
@@ -73,7 +98,7 @@ export const DashboardFeed = ({ onOpenUpload }) => {
   // Framing Mode: 'cover' (aesthetic fill) | 'contain' (full photo with bokeh backdrop)
   const [fitMode, setFitMode] = useState('cover');
   // Filter by Uploader
-  const [filterUploader, setFilterUploader] = useState('all'); // 'all' | 'ashis' | 'kirti'
+  const [filterUploader, setFilterUploader] = useState('all'); // 'all' | 'majnu' | 'laila'
 
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(null);
   const [doubleClickedId, setDoubleClickedId] = useState(null);
@@ -90,10 +115,17 @@ export const DashboardFeed = ({ onOpenUpload }) => {
     new Map(combinedMemories.map((m) => [m._id, m])).values()
   );
 
-  // Filter memories
+  // Filter memories (supporting both Majnu and Laila)
   const filteredMemories = uniqueMemories.filter((mem) => {
     if (filterUploader === 'all') return true;
-    return mem.uploaderName?.toLowerCase() === filterUploader.toLowerCase();
+    const name = mem.uploaderName?.toLowerCase() || '';
+    if (filterUploader === 'majnu' || filterUploader === 'ashis') {
+      return name === 'majnu' || name === 'ashis';
+    }
+    if (filterUploader === 'laila' || filterUploader === 'kirti') {
+      return name === 'laila' || name === 'kirti';
+    }
+    return name === filterUploader.toLowerCase();
   });
 
   const selectedMedia = selectedMediaIndex !== null ? filteredMemories[selectedMediaIndex] : null;
@@ -191,7 +223,7 @@ export const DashboardFeed = ({ onOpenUpload }) => {
             </motion.span>
           </div>
           <p className={`text-xs sm:text-sm font-serif italic transition-colors duration-700 ${theme.subText}`}>
-            Every smile, touch, and adventure captured for eternity between Ashis &amp; Kirti.
+            Every smile, touch, and adventure captured for eternity between Laila &amp; Majnu.
           </p>
         </div>
 
@@ -210,26 +242,26 @@ export const DashboardFeed = ({ onOpenUpload }) => {
               All
             </button>
             <button
-              onClick={() => setFilterUploader('ashis')}
+              onClick={() => setFilterUploader('majnu')}
               className={`px-2.5 py-1 rounded-xl cursor-pointer transition-colors flex items-center gap-1 ${
-                filterUploader === 'ashis'
+                filterUploader === 'majnu' || filterUploader === 'ashis'
                   ? 'bg-white dark:bg-slate-800 text-emerald-500 shadow-xs'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
               }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span>Ashis</span>
+              <span>Majnu</span>
             </button>
             <button
-              onClick={() => setFilterUploader('kirti')}
+              onClick={() => setFilterUploader('laila')}
               className={`px-2.5 py-1 rounded-xl cursor-pointer transition-colors flex items-center gap-1 ${
-                filterUploader === 'kirti'
+                filterUploader === 'laila' || filterUploader === 'kirti'
                   ? 'bg-white dark:bg-slate-800 text-pink-500 shadow-xs'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
               }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-pink-500" />
-              <span>Kirti</span>
+              <span>Laila</span>
             </button>
           </div>
 
@@ -341,7 +373,7 @@ export const DashboardFeed = ({ onOpenUpload }) => {
                 localLikedIds.has(mem._id) ||
                 mem.likes?.some((l) => l.user === user?.displayName);
               const isDoubleTapped = doubleClickedId === mem._id;
-              const isAshis = mem.uploaderName?.toLowerCase() === 'ashis';
+              const isMajnu = mem.uploaderName?.toLowerCase() === 'majnu' || mem.uploaderName?.toLowerCase() === 'ashis';
 
               return (
                 <motion.div
@@ -397,12 +429,12 @@ export const DashboardFeed = ({ onOpenUpload }) => {
                     <div className="absolute top-3 left-3 z-20 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[11px] font-bold flex items-center gap-1.5 border border-white/20 shadow-md">
                       <span
                         className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black ${
-                          isAshis ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'
+                          isMajnu ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'
                         }`}
                       >
                         {mem.uploaderName ? mem.uploaderName.charAt(0) : 'L'}
                       </span>
-                      <span>{mem.uploaderName || 'Ashis & Kirti'}</span>
+                      <span>{mem.uploaderName || 'Laila & Majnu'}</span>
                     </div>
 
                     {/* Top Right: Love Heart Button with Tactile Animation */}
@@ -450,7 +482,7 @@ export const DashboardFeed = ({ onOpenUpload }) => {
                         </p>
                       ) : (
                         <p className={`text-xs italic opacity-75 ${theme.subText}`}>
-                          A silent, cherished moment between Ashis &amp; Kirti
+                          A silent, cherished moment between Laila &amp; Majnu
                         </p>
                       )}
                     </div>
@@ -572,7 +604,7 @@ export const DashboardFeed = ({ onOpenUpload }) => {
                   <div className="md:col-span-5 p-6 sm:p-8 flex flex-col justify-between">
                     <div>
                       <span className="text-[11px] font-bold text-rose-500 uppercase tracking-widest block mb-2">
-                        Ashis ❤️ Kirti Chronicle
+                        Laila ❤️ Majnu Chronicle
                       </span>
                       <h3 className={`text-base sm:text-xl font-serif font-black leading-snug mb-3 ${theme.headingText}`}>
                         "{mem.caption || 'Our journey of holding hands and loving unconditionally.'}"
@@ -701,7 +733,7 @@ export const DashboardFeed = ({ onOpenUpload }) => {
                     "{selectedMedia.caption}"
                   </p>
                   <p className="text-xs text-rose-300/80 mt-1">
-                    Captured by {selectedMedia.uploaderName} • Ashis &amp; Kirti Love Chronicle
+                    Captured by {selectedMedia.uploaderName} • Laila &amp; Majnu Love Chronicle
                   </p>
                 </div>
               )}

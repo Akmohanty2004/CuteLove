@@ -31,7 +31,7 @@ export const sendMessage = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Message content cannot be empty' });
     }
 
-    const recipientName = req.user.displayName === 'Ashis' ? 'Kirti' : 'Ashis';
+    const recipientName = (req.user.displayName === 'Majnu' || req.user.displayName === 'Ashis') ? 'Laila' : 'Majnu';
 
     const message = await Message.create({
       sender: req.user.id,
@@ -62,7 +62,7 @@ export const sendMessage = async (req, res) => {
 // @route   PATCH /api/messages/read
 export const markMessagesAsRead = async (req, res) => {
   try {
-    const partnerName = req.user.displayName === 'Ashis' ? 'Kirti' : 'Ashis';
+    const partnerName = (req.user.displayName === 'Majnu' || req.user.displayName === 'Ashis') ? 'Laila' : 'Majnu';
 
     await Message.updateMany(
       { senderName: partnerName, isRead: false },
