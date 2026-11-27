@@ -17,6 +17,7 @@ server/.env
 
 # Local Database & Media Uploads
 data/
+server/data/
 server/uploads/*
 !server/uploads/.gitkeep
 

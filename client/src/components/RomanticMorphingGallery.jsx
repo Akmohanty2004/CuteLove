@@ -288,8 +288,8 @@ export const RomanticMorphingGallery = () => {
   // Responsive 3D Radii calculation
   const isMobile = arenaWidth < 640;
   const isTablet = arenaWidth >= 640 && arenaWidth < 1024;
-  const rx = isMobile ? Math.min(arenaWidth * 0.38, 145) : isTablet ? 220 : 310;
-  const ry = isMobile ? Math.min(arenaWidth * 0.22, 75) : isTablet ? 110 : 140;
+  const rx = isMobile ? Math.max(130, Math.min(arenaWidth * 0.42, 160)) : isTablet ? 230 : 320;
+  const ry = isMobile ? Math.max(75, Math.min(arenaWidth * 0.24, 95)) : isTablet ? 115 : 145;
 
   // Web Audio crystalline celestial chime
   const playCelestialChime = (freq = 659.25) => {
@@ -330,7 +330,7 @@ export const RomanticMorphingGallery = () => {
   const handlePointerDown = (e) => {
     if (viewMode !== 'orbit') return;
     setIsDragging(true);
-    dragStartX.current = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+    dragStartX.current = e.clientX ?? (e.touches && e.touches[0]?.clientX) ?? 0;
     dragStartAngle.current = orbitAngle;
   };
 
@@ -339,15 +339,15 @@ export const RomanticMorphingGallery = () => {
       // Update gentle parallax tilt when moving cursor
       if (arenaRef.current && viewMode === 'orbit') {
         const rect = arenaRef.current.getBoundingClientRect();
-        const clientX = e.clientX || (e.touches && e.touches[0].clientX) || rect.left + rect.width / 2;
-        const clientY = e.clientY || (e.touches && e.touches[0].clientY) || rect.top + rect.height / 2;
+        const clientX = e.clientX ?? (e.touches && e.touches[0]?.clientX) ?? (rect.left + rect.width / 2);
+        const clientY = e.clientY ?? (e.touches && e.touches[0]?.clientY) ?? (rect.top + rect.height / 2);
         const normX = (clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
         const normY = (clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
         setTilt({ x: normY * -8, y: normX * 10 });
       }
       return;
     }
-    const currentX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+    const currentX = e.clientX ?? (e.touches && e.touches[0]?.clientX) ?? 0;
     const deltaX = currentX - dragStartX.current;
     setOrbitAngle(dragStartAngle.current + deltaX / 160);
   };
@@ -719,10 +719,19 @@ export const RomanticMorphingGallery = () => {
       {viewMode === 'orbit' && (
         <div
           ref={arenaRef}
-          onPointerDown={handlePointerDown}
+          onPointerDown={(e) => {
+            try { e.currentTarget.setPointerCapture?.(e.pointerId); } catch (_) {}
+            handlePointerDown(e);
+          }}
           onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerUp}
+          onPointerUp={(e) => {
+            try { e.currentTarget.releasePointerCapture?.(e.pointerId); } catch (_) {}
+            handlePointerUp(e);
+          }}
+          onPointerCancel={(e) => {
+            try { e.currentTarget.releasePointerCapture?.(e.pointerId); } catch (_) {}
+            handlePointerUp(e);
+          }}
           style={{
             perspective: 1200,
             touchAction: 'none',
@@ -752,7 +761,7 @@ export const RomanticMorphingGallery = () => {
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.94 }}
               title="Click to pulse Laila & Majnu's Cosmic Love Wave!"
-              className="absolute z-20 flex flex-col items-center justify-center text-center p-3 sm:p-5 rounded-full bg-gradient-to-tr from-rose-600/90 via-pink-600/80 to-amber-500/90 backdrop-blur-xl border-2 sm:border-4 border-white/50 shadow-[0_0_60px_rgba(244,63,94,0.7)] w-32 h-32 sm:w-44 sm:h-44 md:w-52 md:h-52 cursor-pointer transition-shadow"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center justify-center text-center p-2.5 sm:p-5 rounded-full bg-gradient-to-tr from-rose-600/90 via-pink-600/80 to-amber-500/90 backdrop-blur-xl border-2 sm:border-4 border-white/50 shadow-[0_0_60px_rgba(244,63,94,0.7)] w-28 h-28 sm:w-40 sm:h-40 md:w-52 md:h-52 cursor-pointer transition-shadow"
             >
               {/* Outer Counter-Rotating Celestial Rings */}
               <motion.div
@@ -861,7 +870,9 @@ export const RomanticMorphingGallery = () => {
                 <div
                   key={item._id}
                   style={{
-                    transform: `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0px) scale(${isHovered ? (scale * 1.25).toFixed(3) : scale.toFixed(3)})`,
+                    top: '50%',
+                    left: '50%',
+                    transform: `translate3d(calc(-50% + ${x.toFixed(1)}px), calc(-50% + ${y.toFixed(1)}px), 0px) scale(${isHovered ? (scale * 1.25).toFixed(3) : scale.toFixed(3)})`,
                     zIndex: isHovered ? 40 : zIndex,
                     opacity: isHovered ? 1 : opacity.toFixed(2),
                     filter: depthNorm < 0.25 && !isHovered ? 'blur(1px)' : 'none',
@@ -877,12 +888,14 @@ export const RomanticMorphingGallery = () => {
                     e.stopPropagation();
                     setSelectedImage(item);
                   }}
-                  className={`absolute group cursor-pointer w-28 sm:w-36 md:w-44 overflow-hidden shadow-2xl ${shape.clipClass} ${shape.borderStyle}`}
+                  className={`absolute group cursor-pointer w-22 sm:w-32 md:w-40 overflow-hidden shadow-2xl ${shape.clipClass} ${shape.borderStyle}`}
                 >
                   <img
                     src={item.url}
                     alt={item.caption || 'Memory'}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-115 aspect-square"
+                    draggable={false}
+                    onDragStart={(e) => e.preventDefault()}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-115 aspect-square pointer-events-none select-none"
                     loading="lazy"
                   />
 
