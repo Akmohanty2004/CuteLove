@@ -40,26 +40,20 @@ export const App = () => {
           </p>
         </div>
       ) : user ? (
-        <AnimatePresence mode="wait" initial={false}>
-          {currentPage === 'whatsapp' ? (
+        <div className="relative min-h-screen">
+          {/* Dashboard is kept persistently mounted so switching between sections or WhatsApp never flashes white */}
+          <div className={currentPage === 'whatsapp' ? 'hidden' : 'block'}>
+            <DashboardPage onOpenWhatsApp={() => navigateTo('whatsapp')} />
+          </div>
+          {currentPage === 'whatsapp' && (
             <div
               key="whatsapp-fullscreen-page"
-              className="fixed inset-0 z-50 w-full h-full overflow-hidden"
+              className="fixed inset-0 z-50 w-full h-full overflow-hidden bg-slate-900"
             >
               <WhatsAppChatPage onBack={() => navigateTo('dashboard')} />
             </div>
-          ) : (
-            <motion.div
-              key="dashboard-sanctuary-page"
-              initial={{ opacity: 0, scale: 1.01 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.99 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <DashboardPage onOpenWhatsApp={() => navigateTo('whatsapp')} />
-            </motion.div>
           )}
-        </AnimatePresence>
+        </div>
       ) : (
         <LoginPage />
       )}

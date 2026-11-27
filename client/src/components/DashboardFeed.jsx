@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -19,6 +19,10 @@ import {
   Flame,
   Check,
   Trash2,
+  Shuffle,
+  RotateCcw,
+  ChevronsDown,
+  ChevronsUp,
 } from 'lucide-react';
 import { useMemories } from '../hooks/useMemories';
 import { useAuth } from '../context/AuthContext';
@@ -31,6 +35,8 @@ import couple3 from '../assets/couples/couple3.jpg';
 import couple4 from '../assets/couples/couple4.jpg';
 import couple5 from '../assets/couples/couple5.jpg';
 import couple6 from '../assets/couples/couple6.jpg';
+import couple7 from '../assets/couples/couple7.jpg';
+import couple8 from '../assets/couples/couple8.jpg';
 
 // Fallback high-resolution romantic moments with real downloaded Hindi cinema couple moments
 const CURATED_ROMANTIC_MOMENTS = [
@@ -88,6 +94,24 @@ const CURATED_ROMANTIC_MOMENTS = [
     likes: [{ user: 'Majnu' }],
     mediaType: 'image',
   },
+  {
+    _id: 'feed-curated-7',
+    url: couple7,
+    caption: 'Lost in conversation under the starlit sky. Every word with you is poetry.',
+    uploaderName: 'Majnu',
+    date: '2024-02-14',
+    likes: [{ user: 'Laila' }, { user: 'Majnu' }],
+    mediaType: 'image',
+  },
+  {
+    _id: 'feed-curated-8',
+    url: couple8,
+    caption: 'Through every season, through every high and low, holding your hand forever.',
+    uploaderName: 'Laila',
+    date: '2024-09-10',
+    likes: [{ user: 'Majnu' }],
+    mediaType: 'image',
+  },
 ];
 
 export const DashboardFeed = ({ onOpenUpload }) => {
@@ -95,8 +119,18 @@ export const DashboardFeed = ({ onOpenUpload }) => {
   const { user, partner, activeMoodTheme } = useAuth();
   const theme = MOOD_THEMES[activeMoodTheme] || MOOD_THEMES.happy;
 
-  // View Layout Modes: 'grid' (aesthetic cards) | 'polaroid' (scrapbook) | 'showcase' (cinematic magazine)
-  const [layoutMode, setLayoutMode] = useState('grid');
+  // View Layout Modes: 'shuffle' (scroll-driven card fan/deck) | 'grid' | 'polaroid' | 'showcase'
+  const [layoutMode, setLayoutMode] = useState('shuffle');
+  // Spread Progress: 0 = stacked deck, 1 = separated fan (decreases on scroll down, increases on scroll up)
+  const [spreadProgress, setSpreadProgress] = useState(0.85);
+  const [isDeckShuffling, setIsDeckShuffling] = useState(false);
+  const [shuffledIndices, setShuffledIndices] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  const deckContainerRef = useRef(null);
+  const lastScrollY = useRef(typeof window !== 'undefined' ? window.scrollY : 0);
+  const touchStartY = useRef(0);
+
   // Framing Mode: 'cover' (aesthetic fill) | 'contain' (full photo with bokeh backdrop)
   const [fitMode, setFitMode] = useState('cover');
   // Filter by Uploader
@@ -108,6 +142,93 @@ export const DashboardFeed = ({ onOpenUpload }) => {
   const [imageToDelete, setImageToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletedLocalIds, setDeletedLocalIds] = useState(new Set());
+
+  // Screen width observer for responsive card fan arc
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Listen to window scroll:
+  // Scroll DOWN -> cards converge / stack together into a neat deck (spreadProgress -> 0)
+  // Scroll UP -> cards separate / fan out into an arc revealing all photos (spreadProgress -> 1)
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      const delta = currentY - lastScrollY.current;
+      if (delta > 5) {
+        // Scrolling DOWN -> cards come together / stack into deck
+        setSpreadProgress((prev) => Math.max(0, parseFloat((prev - 0.05).toFixed(3))));
+      } else if (delta < -5) {
+        // Scrolling UP -> cards separate and fan out
+        setSpreadProgress((prev) => Math.min(1, parseFloat((prev + 0.05).toFixed(3))));
+      }
+      lastScrollY.current = currentY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Trackpad or mouse wheel over deck container directly adjusts spread
+  const handleDeckWheel = (e) => {
+    if (Math.abs(e.deltaY) > 4) {
+      if (e.deltaY > 0) {
+        // Wheel DOWN -> cards gather into stacked deck
+        setSpreadProgress((prev) => Math.max(0, parseFloat((prev - 0.06).toFixed(3))));
+      } else {
+        // Wheel UP -> cards separate and fan out
+        setSpreadProgress((prev) => Math.min(1, parseFloat((prev + 0.06).toFixed(3))));
+      }
+    }
+  };
+
+  // Touch gestures for mobile swipe
+  const handleTouchStart = (e) => {
+    if (e.touches && e.touches[0]) {
+      touchStartY.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.touches && e.touches[0]) {
+      const touchY = e.touches[0].clientY;
+      const deltaY = touchStartY.current - touchY;
+      if (deltaY > 8) {
+        // Swipe UP (scrolling page down) -> cards stack into deck
+        setSpreadProgress((prev) => Math.max(0, parseFloat((prev - 0.04).toFixed(3))));
+        touchStartY.current = touchY;
+      } else if (deltaY < -8) {
+        // Swipe DOWN (scrolling page up) -> cards fan out
+        setSpreadProgress((prev) => Math.min(1, parseFloat((prev + 0.04).toFixed(3))));
+        touchStartY.current = touchY;
+      }
+    }
+  };
+
+  // Interactive Shuffle Deck Order with Confetti & Spring Bounce
+  const handleShuffleCards = () => {
+    setIsDeckShuffling(true);
+    confetti({
+      particleCount: 45,
+      spread: 80,
+      origin: { x: 0.5, y: 0.55 },
+      colors: ['#f43f5e', '#ec4899', '#fb7185', '#fbbf24', '#a855f7'],
+    });
+
+    setTimeout(() => {
+      const len = filteredMemories.length;
+      const indices = Array.from({ length: len }, (_, i) => i);
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+      setShuffledIndices(indices);
+      setIsDeckShuffling(false);
+    }, 380);
+  };
 
   // Merge server feed with curated moments if feed has few items
   const combinedMemories = [
@@ -303,8 +424,20 @@ export const DashboardFeed = ({ onOpenUpload }) => {
             </button>
           </div>
 
-          {/* Layout Switcher (Grid vs Polaroid vs Showcase) */}
+          {/* Layout Switcher (Shuffle Deck vs Grid vs Polaroid vs Showcase) */}
           <div className="flex items-center gap-1 bg-black/5 dark:bg-white/10 p-1 rounded-2xl text-xs font-bold">
+            <button
+              onClick={() => setLayoutMode('shuffle')}
+              title="Scroll Card Shuffle Deck (Scroll down: stacks deck • Scroll up: separates images)"
+              className={`px-2.5 py-1.5 rounded-xl cursor-pointer transition-all flex items-center gap-1.5 ${
+                layoutMode === 'shuffle'
+                  ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
+              }`}
+            >
+              <Shuffle className="w-3.5 h-3.5" />
+              <span className="text-[11px] font-bold hidden sm:inline">Shuffle Deck</span>
+            </button>
             <button
               onClick={() => setLayoutMode('grid')}
               title="Modern Romantic Grid"
@@ -391,6 +524,272 @@ export const DashboardFeed = ({ onOpenUpload }) => {
         </motion.div>
       ) : (
         /* ======================================================= */
+        /* 0. INTERACTIVE SCROLL CARD SHUFFLE DECK (Scroll down: stacks deck, Scroll up: separates images) */
+        /* ======================================================= */
+        layoutMode === 'shuffle' ? (
+          <div
+            ref={deckContainerRef}
+            onWheel={handleDeckWheel}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            className="flex flex-col items-center select-none w-full py-2 space-y-4"
+          >
+            {/* Top Interactive Banner & Live Scroll Instruction Bar */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full max-w-4xl flex flex-col md:flex-row items-center justify-between gap-4 p-4 rounded-3xl bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl border border-rose-200/60 dark:border-white/10 shadow-lg"
+            >
+              {/* Dynamic State Pill with Live Scroll Instruction */}
+              <div className="flex items-center gap-3">
+                <div
+                  className={`p-2.5 rounded-2xl ${
+                    spreadProgress < 0.35
+                      ? 'bg-amber-100 text-amber-600 dark:bg-amber-950/80 dark:text-amber-300'
+                      : 'bg-rose-100 text-rose-600 dark:bg-rose-950/80 dark:text-rose-300'
+                  } shadow-xs transition-colors`}
+                >
+                  <Shuffle className={`w-5 h-5 ${isDeckShuffling ? 'animate-spin' : ''}`} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold font-serif text-slate-900 dark:text-white">
+                      {spreadProgress < 0.3
+                        ? '📦 Deck Stacked Together'
+                        : spreadProgress > 0.7
+                        ? '✨ Cards Separated & Fanned Out'
+                        : '💫 Transitioning Cards'}
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-rose-50 dark:bg-slate-800 text-rose-500 border border-rose-200/60 dark:border-slate-700">
+                      {Math.round(spreadProgress * 100)}% Fan Spread
+                    </span>
+                  </div>
+                  <p className="text-xs font-serif italic text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
+                    {spreadProgress < 0.35 ? (
+                      <>
+                        <ChevronsUp className="w-4 h-4 text-rose-500 animate-bounce" />
+                        <span>Scroll <b>UP</b> to fan out and separate all images</span>
+                      </>
+                    ) : (
+                      <>
+                        <ChevronsDown className="w-4 h-4 text-rose-500 animate-bounce" />
+                        <span>Scroll <b>DOWN</b> to gather cards into a stacked deck</span>
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons: Fan Out, Stack Deck, Shuffle Cards */}
+              <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => setSpreadProgress(1)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    spreadProgress >= 0.8
+                      ? 'bg-rose-500 text-white shadow-md'
+                      : 'bg-black/5 dark:bg-white/10 text-slate-700 dark:text-slate-200 hover:bg-black/10'
+                  }`}
+                  title="Separate all images into a curved fan"
+                >
+                  Fan Out
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSpreadProgress(0)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    spreadProgress <= 0.2
+                      ? 'bg-rose-500 text-white shadow-md'
+                      : 'bg-black/5 dark:bg-white/10 text-slate-700 dark:text-slate-200 hover:bg-black/10'
+                  }`}
+                  title="Stack all images into a single deck"
+                >
+                  Stack Deck
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShuffleCards}
+                  disabled={isDeckShuffling}
+                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-xs font-bold shadow-md cursor-pointer transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
+                  title="Re-order and shuffle cards randomly"
+                >
+                  <RotateCcw className={`w-3.5 h-3.5 ${isDeckShuffling ? 'animate-spin' : ''}`} />
+                  <span>Shuffle</span>
+                </button>
+              </div>
+            </motion.div>
+
+            {/* The 3D Interactive Card Deck Stage */}
+            <div className="relative w-full h-[520px] sm:h-[560px] md:h-[600px] flex items-center justify-center overflow-visible my-2">
+              {(shuffledIndices && shuffledIndices.length === filteredMemories.length
+                ? shuffledIndices.map((i) => filteredMemories[i])
+                : filteredMemories
+              ).map((mem, idx, arr) => {
+                const count = arr.length;
+                const center = (count - 1) / 2;
+                const rel = idx - center;
+                const isLiked =
+                  localLikedIds.has(mem._id) ||
+                  mem.likes?.some((l) => l.user === user?.displayName);
+                const isDoubleTapped = doubleClickedId === mem._id;
+                const isMajnu =
+                  mem.uploaderName?.toLowerCase() === 'majnu' ||
+                  mem.uploaderName?.toLowerCase() === 'ashis';
+
+                // Responsive positioning calculations:
+                // In separated/fanned state (spreadProgress = 1):
+                // Cards spread horizontally across an arc with rotational fanning
+                const fannedX = rel * (isMobile ? 48 : 110);
+                const fannedY = Math.pow(Math.abs(rel), 1.25) * (isMobile ? 10 : 16);
+                const fannedRot = rel * (isMobile ? 4.5 : 6);
+
+                // In stacked deck state (spreadProgress = 0):
+                // Cards converge neatly with slight natural card deck offset
+                const stackedX = rel * 2.5;
+                const stackedY = idx * -2.5;
+                const stackedRot = (idx % 2 === 0 ? 1 : -1) * (idx * 0.9);
+
+                const currentX = fannedX * spreadProgress + stackedX * (1 - spreadProgress);
+                const currentY = fannedY * spreadProgress + stackedY * (1 - spreadProgress);
+                const currentRot = fannedRot * spreadProgress + stackedRot * (1 - spreadProgress);
+                const currentZ = Math.round(
+                  (count - Math.abs(rel)) * 10 * spreadProgress +
+                    (count - idx) * 10 * (1 - spreadProgress)
+                );
+
+                return (
+                  <motion.div
+                    key={mem._id}
+                    layout
+                    style={{ zIndex: currentZ }}
+                    animate={{
+                      x: currentX,
+                      y: currentY,
+                      rotate: currentRot,
+                      scale: 1,
+                    }}
+                    transition={{
+                      type: 'spring',
+                      damping: 24,
+                      stiffness: 220,
+                      mass: 0.85,
+                    }}
+                    whileHover={{
+                      y: currentY - 24,
+                      scale: 1.06,
+                      rotate: 0,
+                      zIndex: 9999,
+                      transition: { duration: 0.25 },
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      const originalIndex = filteredMemories.findIndex((m) => m._id === mem._id);
+                      setSelectedMediaIndex(originalIndex >= 0 ? originalIndex : idx);
+                    }}
+                    onDoubleClick={(e) => handleDoubleClick(mem, e)}
+                    className={`absolute w-60 sm:w-72 md:w-80 h-84 sm:h-96 md:h-[420px] rounded-3xl overflow-hidden cursor-pointer border-3 shadow-2xl transition-shadow ${
+                      theme.isDark
+                        ? 'bg-slate-900 border-slate-700/80 shadow-black/80 hover:border-rose-400 hover:shadow-rose-500/30'
+                        : 'bg-white border-white/90 shadow-rose-950/20 hover:border-rose-300 hover:shadow-rose-500/30'
+                    }`}
+                  >
+                    {/* Top image section with blur backdrop */}
+                    <div className="relative h-[66%] w-full overflow-hidden bg-slate-950">
+                      <img
+                        src={mem.url}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 w-full h-full object-cover blur-xl scale-125 opacity-40 pointer-events-none"
+                      />
+                      <img
+                        src={mem.url}
+                        alt={mem.caption || 'Couple moment'}
+                        className="relative z-10 w-full h-full object-cover"
+                        loading="lazy"
+                      />
+
+                      {/* Glossy sheen overlay */}
+                      <div className="absolute inset-0 z-15 bg-gradient-to-tr from-white/15 via-transparent to-black/25 pointer-events-none" />
+
+                      {/* Uploader Pill */}
+                      <div className="absolute top-3 left-3 z-20 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[11px] font-bold flex items-center gap-1.5 border border-white/20 shadow-md">
+                        <span
+                          className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] font-black ${
+                            isMajnu ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'
+                          }`}
+                        >
+                          {mem.uploaderName ? mem.uploaderName.charAt(0) : 'L'}
+                        </span>
+                        <span>{mem.uploaderName || 'Laila & Majnu'}</span>
+                      </div>
+
+                      {/* Delete & Heart buttons */}
+                      <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5">
+                        <motion.button
+                          whileHover={{ scale: 1.15 }}
+                          whileTap={{ scale: 0.85 }}
+                          onClick={(e) => handleDeleteClick(mem, e)}
+                          title="Delete memory"
+                          className="w-8 h-8 rounded-full flex items-center justify-center bg-black/60 hover:bg-rose-600 text-white backdrop-blur-md transition-colors cursor-pointer shadow-md border border-white/20"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.2 }}
+                          whileTap={{ scale: 0.85 }}
+                          onClick={(e) => handleLike(mem._id, e)}
+                          title={isLiked ? 'Loved' : 'Love memory'}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md backdrop-blur-md transition-all cursor-pointer ${
+                            isLiked
+                              ? 'bg-rose-500 text-white'
+                              : 'bg-white/90 text-slate-700 hover:text-rose-500'
+                          }`}
+                        >
+                          <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-white' : ''}`} />
+                        </motion.button>
+                      </div>
+
+                      {/* Double tap heart blast */}
+                      <AnimatePresence>
+                        {isDoubleTapped && (
+                          <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1.5, opacity: 1 }}
+                            exit={{ scale: 2.2, opacity: 0 }}
+                            className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none"
+                          >
+                            <Heart className="w-16 h-16 fill-rose-500 text-rose-500 drop-shadow-[0_0_25px_rgba(244,63,94,0.9)]" />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Bottom caption and footer */}
+                    <div className="h-[34%] p-3 sm:p-4 flex flex-col justify-between bg-white dark:bg-slate-900">
+                      <p className={`text-xs font-serif leading-snug line-clamp-2 ${theme.headingText}`}>
+                        "{mem.caption || 'A timeless moment etched in our souls forever.'}"
+                      </p>
+                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-rose-400" />
+                          {new Date(mem.date || mem.createdAt || '2020-09-10').toLocaleDateString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </span>
+                        <span className="flex items-center gap-1 text-rose-500 font-bold">
+                          <Heart className={`w-3 h-3 ${isLiked ? 'fill-rose-500' : ''}`} />
+                          <span>{(mem.likes?.length || 0) + (localLikedIds.has(mem._id) ? 1 : 0)} loves</span>
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        ) : /* ======================================================= */
         /* 1. ROMANTIC MODERN GRID LAYOUT */
         /* ======================================================= */
         layoutMode === 'grid' ? (

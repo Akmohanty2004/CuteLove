@@ -156,7 +156,7 @@ const ROMANTIC_WHISPERS = [
   'Laila & Majnu • One Heartbeat, Two People 💕',
 ];
 
-export const RomanticMorphingGallery = () => {
+export const RomanticMorphingGallery = ({ isTabActive = true }) => {
   const { dashboardFeed, vaultMemories, uploadMemory, deleteMemory, isUploading } = useMemories();
   const { user, partner, activeMoodTheme } = useAuth();
   const theme = MOOD_THEMES[activeMoodTheme] || MOOD_THEMES.happy;
@@ -314,7 +314,7 @@ export const RomanticMorphingGallery = () => {
 
   // Continuous 3D orbit rotation loop with speedMultiplier & smooth requestAnimationFrame
   useEffect(() => {
-    if (!isPlaying || viewMode !== 'orbit' || hoveredCardId !== null || isDragging) return;
+    if (!isTabActive || !isPlaying || viewMode !== 'orbit' || hoveredCardId !== null || isDragging) return;
     let animId;
     let lastTime = performance.now();
     const rotate = (currentTime) => {
@@ -325,7 +325,7 @@ export const RomanticMorphingGallery = () => {
     };
     animId = requestAnimationFrame(rotate);
     return () => cancelAnimationFrame(animId);
-  }, [isPlaying, viewMode, hoveredCardId, isDragging, speedMultiplier]);
+  }, [isTabActive, isPlaying, viewMode, hoveredCardId, isDragging, speedMultiplier]);
 
   // Pointer drag to spin the 3D orbit manually
   const handlePointerDown = (e) => {
@@ -361,6 +361,7 @@ export const RomanticMorphingGallery = () => {
 
   // Animated Cosmic Illustration Background
   useEffect(() => {
+    if (!isTabActive) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');

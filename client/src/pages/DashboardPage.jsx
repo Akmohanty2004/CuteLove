@@ -56,113 +56,80 @@ export const DashboardPage = () => {
           : 'max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6'
       }`}>
         
-        {/* Widgets on Home Feed View */}
-        {activeTab === 'feed' && (
-          <>
-            {/* Dynamic Atmosphere Mood Banner with Framer Motion */}
-            <motion.div
-              key={activeMoodTheme}
-              initial={{ opacity: 0, y: -8, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className={`px-4 py-2.5 rounded-2xl border transition-all duration-700 flex items-center justify-between shadow-md backdrop-blur-md ${theme.badgeBg}`}
-            >
-              <div className="flex items-center gap-2 text-xs font-semibold">
-                <span className="text-lg">{theme.emoji}</span>
-                <span>{theme.bannerText}</span>
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider opacity-80 hidden sm:inline">
-                Synchronized 2-Person Ambience
-              </span>
-            </motion.div>
+        {/* ======================================================== */}
+        {/* 1. HOME FEED SECTION (Instant zero-latency tab switching) */}
+        {/* ======================================================== */}
+        <div className={`space-y-6 ${activeTab === 'feed' ? 'block' : 'hidden'}`}>
+          {/* Dynamic Atmosphere Mood Banner with Framer Motion */}
+          <motion.div
+            key={activeMoodTheme}
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className={`px-4 py-2.5 rounded-2xl border transition-all duration-700 flex items-center justify-between shadow-md backdrop-blur-md ${theme.badgeBg}`}
+          >
+            <div className="flex items-center gap-2 text-xs font-semibold">
+              <span className="text-lg">{theme.emoji}</span>
+              <span>{theme.bannerText}</span>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider opacity-80 hidden sm:inline">
+              Synchronized 2-Person Ambience
+            </span>
+          </motion.div>
 
-            {/* Dynamic Cheer-Up Alert Banner (Appears when partner is sad or gussa) */}
-            <CheerUpBanner />
+          {/* Dynamic Cheer-Up Alert Banner (Appears when partner is sad or gussa) */}
+          <CheerUpBanner />
 
-            {/* Anniversary Countdown & Milestone Widget */}
-            <AnniversaryWidget gradient={theme.anniversaryGrad} />
+          {/* Anniversary Countdown & Milestone Widget */}
+          <AnniversaryWidget gradient={theme.anniversaryGrad} />
 
-            {/* Real-time Mood Sync Engine with Realistic Tactile Buttons */}
-            <MoodSelector theme={theme} />
+          {/* Real-time Mood Sync Engine with Realistic Tactile Buttons */}
+          <MoodSelector theme={theme} />
 
-            {/* Memories of the Day Flashback Collage */}
-            <MemoryOfTheDay />
-          </>
-        )}
+          {/* Memories of the Day Flashback Collage */}
+          <MemoryOfTheDay />
 
-        {/* Fluid Tab Views with AnimatePresence */}
-        <AnimatePresence mode="wait">
-          {activeTab === 'feed' && (
-            <motion.div
-              key="feed"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.35, ease: 'easeOut' }}
-              className="space-y-6"
-            >
-              {/* Dynamic Moving Shapes Showcase with Animated Optical / Cosmic Background */}
-              <RomanticMorphingGallery />
+          {/* Dynamic Moving Shapes Showcase with Animated Optical / Cosmic Background */}
+          <RomanticMorphingGallery isTabActive={activeTab === 'feed'} />
 
-              <DashboardFeed onOpenUpload={() => setIsUploadOpen(true)} />
-              <div className="pt-4">
-                <StickyNoteWidget />
-              </div>
-            </motion.div>
-          )}
+          {/* Dashboard Feed with Card Shuffle Scroll Animation */}
+          <DashboardFeed onOpenUpload={() => setIsUploadOpen(true)} />
 
-          {activeTab === 'chat' && (
-            <motion.div
-              key="chat"
-              initial={{ opacity: 0, scale: 0.99 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.99 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="flex-1 min-h-0 flex flex-col h-full overflow-hidden"
-            >
-              <RealtimeChat
-                theme={theme}
-                onBackToFeed={() => setActiveTab('feed')}
-              />
-            </motion.div>
-          )}
+          <div className="pt-4">
+            <StickyNoteWidget />
+          </div>
+        </div>
 
-          {activeTab === 'vault' && (
-            <motion.div
-              key="vault"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.35, ease: 'easeOut' }}
-            >
-              <MemoryVault onOpenUpload={() => setIsUploadOpen(true)} />
-            </motion.div>
-          )}
+        {/* ======================================================== */}
+        {/* 2. CHAT TAB (Embedded fallback when not full-screen) */}
+        {/* ======================================================== */}
+        <div className={`flex-1 min-h-0 flex flex-col h-full overflow-hidden ${activeTab === 'chat' ? 'block' : 'hidden'}`}>
+          <RealtimeChat
+            theme={theme}
+            onBackToFeed={() => setActiveTab('feed')}
+          />
+        </div>
 
-          {activeTab === 'timeline' && (
-            <motion.div
-              key="timeline"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.35, ease: 'easeOut' }}
-            >
-              <MoodChart />
-            </motion.div>
-          )}
+        {/* ======================================================== */}
+        {/* 3. MEMORY VAULT SECTION (Instant zero-latency tab switching) */}
+        {/* ======================================================== */}
+        <div className={activeTab === 'vault' ? 'block' : 'hidden'}>
+          <MemoryVault onOpenUpload={() => setIsUploadOpen(true)} />
+        </div>
 
-          {activeTab === 'notes' && (
-            <motion.div
-              key="notes"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.35, ease: 'easeOut' }}
-            >
-              <StickyNoteWidget />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* ======================================================== */}
+        {/* 4. MOOD GRAPH / TIMELINE SECTION (Instant zero-latency) */}
+        {/* ======================================================== */}
+        <div className={activeTab === 'timeline' ? 'block' : 'hidden'}>
+          <MoodChart />
+        </div>
+
+        {/* ======================================================== */}
+        {/* 5. STICKY NOTES SECTION (Instant zero-latency) */}
+        {/* ======================================================== */}
+        <div className={activeTab === 'notes' ? 'block' : 'hidden'}>
+          <StickyNoteWidget />
+        </div>
       </main>
 
       {/* Real-time Incoming Hug / Reaction Animation */}
