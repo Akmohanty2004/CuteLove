@@ -60,6 +60,7 @@ export const useMemories = (filters = {}) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboardFeed'] });
       queryClient.invalidateQueries({ queryKey: ['vaultMemories'] });
+      queryClient.invalidateQueries({ queryKey: ['flashbacks'] });
     },
   });
 
@@ -72,6 +73,7 @@ export const useMemories = (filters = {}) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboardFeed'] });
       queryClient.invalidateQueries({ queryKey: ['vaultMemories'] });
+      queryClient.invalidateQueries({ queryKey: ['flashbacks'] });
     },
   });
 

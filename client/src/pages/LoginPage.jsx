@@ -148,17 +148,17 @@ export const LoginPage = () => {
             <div className="flex items-center justify-center gap-2">
               <button
                 type="button"
-                onClick={() => handleQuickFill('Ashis0710')}
+                onClick={() => handleQuickFill('majnu123')}
                 className="text-[11px] font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl border border-rose-200 cursor-pointer transition-colors"
               >
-                Majnu's Key (<code className="font-mono text-[10px]">Ashis0710</code>)
+                Majnu's Key (<code className="font-mono text-[10px]">majnu123</code>)
               </button>
               <button
                 type="button"
-                onClick={() => handleQuickFill('Kirti1210')}
+                onClick={() => handleQuickFill('laila@123')}
                 className="text-[11px] font-medium text-pink-700 bg-pink-50 hover:bg-pink-100 px-3 py-1.5 rounded-xl border border-pink-200 cursor-pointer transition-colors"
               >
-                Laila's Key (<code className="font-mono text-[10px]">Kirti1210</code>)
+                Laila's Key (<code className="font-mono text-[10px]">laila@123</code>)
               </button>
             </div>
           </div>

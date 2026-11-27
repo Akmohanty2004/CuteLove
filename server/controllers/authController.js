@@ -72,9 +72,9 @@ export const login = async (req, res) => {
         user = ashis;
       } else if (kirti && (await bcrypt.compare(password, kirti.password))) {
         user = kirti;
-      } else if (ashis && (password === 'Ashis0710' || password === 'Majnu0710')) {
+      } else if (ashis && (password === 'majnu123' || password === 'Majnu123' || password === 'Ashis0710' || password === 'Majnu0710')) {
         user = ashis;
-      } else if (kirti && (password === 'Kirti1210' || password === 'Laila1210')) {
+      } else if (kirti && (password === 'laila@123' || password === 'Laila@123' || password === 'Kirti1210' || password === 'Laila1210')) {
         user = kirti;
       }
     }

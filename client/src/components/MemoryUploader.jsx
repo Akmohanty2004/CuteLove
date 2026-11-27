@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, Image, Video, Eye, EyeOff, X, Check, AlertCircle } from 'lucide-react';
+import { UploadCloud, Image, Video, Eye, EyeOff, X, Check, AlertCircle, Trash2 } from 'lucide-react';
 import { useMemories } from '../hooks/useMemories';
 
 export const MemoryUploader = ({ isOpen, onClose }) => {
@@ -113,6 +113,20 @@ export const MemoryUploader = ({ isOpen, onClose }) => {
                 ) : (
                   <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                 )}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFile(null);
+                    if (previewUrl) URL.revokeObjectURL(previewUrl);
+                    setPreviewUrl('');
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  title="Remove selected image"
+                  className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-black/70 hover:bg-rose-600 text-white transition-colors cursor-pointer shadow-md"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
                 <div className="absolute bottom-2 right-2 px-2.5 py-1 rounded-md bg-black/60 text-white text-[10px] font-medium backdrop-blur-xs">
                   Change media
                 </div>

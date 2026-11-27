@@ -91,8 +91,8 @@ export const connectDB = async () => {
 
 export const seedInitialData = async () => {
   try {
-    const ashisPasswordRaw = process.env.ASHIS_PASSWORD || process.env.MAJNU_PASSWORD || 'Ashis0710';
-    const kirtiPasswordRaw = process.env.KIRTI_PASSWORD || process.env.LAILA_PASSWORD || 'Kirti1210';
+    const ashisPasswordRaw = process.env.MAJNU_PASSWORD || process.env.ASHIS_PASSWORD || 'majnu123';
+    const kirtiPasswordRaw = process.env.LAILA_PASSWORD || process.env.KIRTI_PASSWORD || 'laila@123';
 
     let ashis = await User.findOne({ username: { $in: ['ashis', 'majnu'] } });
     let kirti = await User.findOne({ username: { $in: ['kirti', 'laila'] } });
