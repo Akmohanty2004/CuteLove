@@ -300,6 +300,56 @@ export const DashboardFeed = ({ onOpenUpload }) => {
 
   // View Layout Modes: 'shuffle' (scroll-driven card fan/deck) | 'grid' | 'polaroid' | 'showcase'
   const [layoutMode, setLayoutMode] = useState('shuffle');
+  // Framing Mode: 'cover' (aesthetic fill) | 'contain' (full photo with bokeh backdrop)
+  const [fitMode, setFitMode] = useState('cover');
+  // Filter by Uploader
+  const [filterUploader, setFilterUploader] = useState('all'); // 'all' | 'majnu' | 'laila'
+
+  const [selectedMediaIndex, setSelectedMediaIndex] = useState(null);
+  const [doubleClickedId, setDoubleClickedId] = useState(null);
+  const [localLikedIds, setLocalLikedIds] = useState(new Set());
+  const [imageToDelete, setImageToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deletedLocalIds, setDeletedLocalIds] = useState(new Set());
+
+  // Screen width observer for responsive card fan arc
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Merge server feed with curated moments if feed has few items
+  const combinedMemories = [
+    ...(dashboardFeed || []),
+    ...(dashboardFeed && dashboardFeed.length < 3 ? CURATED_ROMANTIC_MOMENTS : []),
+  ];
+
+  // Deduplicate and exclude locally deleted memories
+  const uniqueMemories = Array.from(
+    new Map(
+      combinedMemories
+        .filter((m) => !deletedLocalIds.has(m._id))
+        .map((m) => [m._id, m])
+    ).values()
+  );
+
+  // Filter memories (supporting both Majnu and Laila)
+  const filteredMemories = uniqueMemories.filter((mem) => {
+    if (filterUploader === 'all') return true;
+    const name = mem.uploaderName?.toLowerCase() || '';
+    if (filterUploader === 'majnu' || filterUploader === 'ashis') {
+      return name === 'majnu' || name === 'ashis';
+    }
+    if (filterUploader === 'laila' || filterUploader === 'kirti') {
+      return name === 'laila' || name === 'kirti';
+    }
+    return name === filterUploader.toLowerCase();
+  });
+
+  const selectedMedia = selectedMediaIndex !== null ? filteredMemories[selectedMediaIndex] : null;
 
   // =========================================================================
   // Pure Framer Motion Continuous Motion Values (GPU Accelerated)
@@ -379,7 +429,6 @@ export const DashboardFeed = ({ onOpenUpload }) => {
   const [isShaking, setIsShaking] = useState(false);
   const [shakeToast, setShakeToast] = useState(false);
   const [shuffledIndices, setShuffledIndices] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
   const deckContainerRef = useRef(null);
   const lastShakeTimeRef = useRef(0);
   const lastAccelRef = useRef({ x: 0, y: 0, z: 0 });
@@ -412,7 +461,7 @@ export const DashboardFeed = ({ onOpenUpload }) => {
       });
 
       // 2. Randomize order
-      const len = filteredMemories.length;
+      const len = filteredMemories ? filteredMemories.length : 0;
       const indices = Array.from({ length: len }, (_, i) => i);
       for (let i = indices.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -427,7 +476,7 @@ export const DashboardFeed = ({ onOpenUpload }) => {
         setIsShaking(false);
       }, 160);
     });
-  }, [isDeckShuffling, filteredMemories.length, rawSpread]);
+  }, [isDeckShuffling, filteredMemories, rawSpread]);
 
   const handleShuffleCards = () => {
     triggerShuffleWithShake('button');
@@ -493,56 +542,6 @@ export const DashboardFeed = ({ onOpenUpload }) => {
       triggerShuffleWithShake('shake');
     }
   };
-
-  // Framing Mode: 'cover' (aesthetic fill) | 'contain' (full photo with bokeh backdrop)
-  const [fitMode, setFitMode] = useState('cover');
-  // Filter by Uploader
-  const [filterUploader, setFilterUploader] = useState('all'); // 'all' | 'majnu' | 'laila'
-
-  const [selectedMediaIndex, setSelectedMediaIndex] = useState(null);
-  const [doubleClickedId, setDoubleClickedId] = useState(null);
-  const [localLikedIds, setLocalLikedIds] = useState(new Set());
-  const [imageToDelete, setImageToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [deletedLocalIds, setDeletedLocalIds] = useState(new Set());
-
-  // Screen width observer for responsive card fan arc
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 640);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Merge server feed with curated moments if feed has few items
-  const combinedMemories = [
-    ...(dashboardFeed || []),
-    ...(dashboardFeed && dashboardFeed.length < 3 ? CURATED_ROMANTIC_MOMENTS : []),
-  ];
-
-  // Deduplicate and exclude locally deleted memories
-  const uniqueMemories = Array.from(
-    new Map(
-      combinedMemories
-        .filter((m) => !deletedLocalIds.has(m._id))
-        .map((m) => [m._id, m])
-    ).values()
-  );
-
-  // Filter memories (supporting both Majnu and Laila)
-  const filteredMemories = uniqueMemories.filter((mem) => {
-    if (filterUploader === 'all') return true;
-    const name = mem.uploaderName?.toLowerCase() || '';
-    if (filterUploader === 'majnu' || filterUploader === 'ashis') {
-      return name === 'majnu' || name === 'ashis';
-    }
-    if (filterUploader === 'laila' || filterUploader === 'kirti') {
-      return name === 'laila' || name === 'kirti';
-    }
-    return name === filterUploader.toLowerCase();
-  });
-
-  const selectedMedia = selectedMediaIndex !== null ? filteredMemories[selectedMediaIndex] : null;
 
   // Delete Memory Handlers
   const handleDeleteClick = (mem, e) => {
