@@ -32,6 +32,8 @@ import {
   RotateCcw,
   ChevronsDown,
   ChevronsUp,
+  Smartphone,
+  Vibrate,
 } from 'lucide-react';
 import { useMemories } from '../hooks/useMemories';
 import { useAuth } from '../context/AuthContext';
@@ -372,19 +374,39 @@ export const DashboardFeed = ({ onOpenUpload }) => {
     animate(rawSpread, 0, { duration: 0.65, ease: [0.16, 1, 0.3, 1] });
   };
 
-  // Interactive Shuffle Deck Order with Confetti & Spring Bounce
+  // Interactive Shuffle Deck Order & Mobile Shake-to-Shuffle state
   const [isDeckShuffling, setIsDeckShuffling] = useState(false);
+  const [isShaking, setIsShaking] = useState(false);
+  const [shakeToast, setShakeToast] = useState(false);
   const [shuffledIndices, setShuffledIndices] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const deckContainerRef = useRef(null);
+  const lastShakeTimeRef = useRef(0);
+  const lastAccelRef = useRef({ x: 0, y: 0, z: 0 });
 
-  const handleShuffleCards = () => {
+  // Unified Shake and Shuffle Trigger with Framer Motion spring physics
+  const triggerShuffleWithShake = useCallback((source = 'button') => {
+    if (isDeckShuffling) return;
     setIsDeckShuffling(true);
-    // 1. First animate cards into center stack
-    animate(rawSpread, 0.1, { duration: 0.25, ease: 'easeInOut' }).then(() => {
+    setIsShaking(true);
+
+    // Haptic vibration feedback on mobile devices
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        navigator.vibrate([45, 30, 60]);
+      } catch (_) {}
+    }
+
+    if (source === 'shake') {
+      setShakeToast(true);
+      setTimeout(() => setShakeToast(false), 2600);
+    }
+
+    // 1. First animate cards into center stack with playful shake flutter
+    animate(rawSpread, 0.05, { duration: 0.22, ease: 'easeInOut' }).then(() => {
       confetti({
-        particleCount: 50,
-        spread: 85,
+        particleCount: 55,
+        spread: 90,
         origin: { x: 0.5, y: 0.55 },
         colors: ['#f43f5e', '#ec4899', '#fb7185', '#fbbf24', '#a855f7'],
       });
@@ -398,12 +420,78 @@ export const DashboardFeed = ({ onOpenUpload }) => {
       }
       setShuffledIndices(indices);
 
-      // 3. Smoothly fan back out with spring
+      // 3. Smoothly fan back out with Framer Motion spring
       setTimeout(() => {
-        animate(rawSpread, 0.9, { duration: 0.7, ease: [0.16, 1, 0.3, 1] });
+        animate(rawSpread, 0.9, { duration: 0.72, ease: [0.16, 1, 0.3, 1] });
         setIsDeckShuffling(false);
-      }, 140);
+        setIsShaking(false);
+      }, 160);
     });
+  }, [isDeckShuffling, filteredMemories.length, rawSpread]);
+
+  const handleShuffleCards = () => {
+    triggerShuffleWithShake('button');
+  };
+
+  // Mobile Device Shake Detection (Accelerometer DeviceMotionEvent API)
+  useEffect(() => {
+    const SHAKE_THRESHOLD = 17; // Acceleration delta threshold (m/s^2)
+    const COOLDOWN_MS = 1500;   // Cooldown between shake triggers
+
+    const handleDeviceMotion = (e) => {
+      const acc = e.accelerationIncludingGravity || e.acceleration;
+      if (!acc) return;
+
+      const now = Date.now();
+      if (now - lastShakeTimeRef.current < COOLDOWN_MS) return;
+
+      const curX = acc.x || 0;
+      const curY = acc.y || 0;
+      const curZ = acc.z || 0;
+
+      const deltaX = Math.abs(curX - lastAccelRef.current.x);
+      const deltaY = Math.abs(curY - lastAccelRef.current.y);
+      const deltaZ = Math.abs(curZ - lastAccelRef.current.z);
+
+      lastAccelRef.current = { x: curX, y: curY, z: curZ };
+
+      // Total acceleration delta across all 3 axes
+      if (deltaX + deltaY + deltaZ > SHAKE_THRESHOLD) {
+        lastShakeTimeRef.current = now;
+        triggerShuffleWithShake('shake');
+      }
+    };
+
+    if (typeof window !== 'undefined' && 'ondevicemotion' in window) {
+      window.addEventListener('devicemotion', handleDeviceMotion, { passive: true });
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('devicemotion', handleDeviceMotion);
+      }
+    };
+  }, [triggerShuffleWithShake]);
+
+  // Request shake permission on iOS 13+ if required, or execute shake test
+  const handleEnableShakeMotion = async () => {
+    if (
+      typeof DeviceMotionEvent !== 'undefined' &&
+      typeof DeviceMotionEvent.requestPermission === 'function'
+    ) {
+      try {
+        const res = await DeviceMotionEvent.requestPermission();
+        if (res === 'granted') {
+          triggerShuffleWithShake('shake');
+        } else {
+          triggerShuffleWithShake('shake');
+        }
+      } catch (err) {
+        triggerShuffleWithShake('shake');
+      }
+    } else {
+      triggerShuffleWithShake('shake');
+    }
   };
 
   // Framing Mode: 'cover' (aesthetic fill) | 'contain' (full photo with bokeh backdrop)
@@ -802,21 +890,48 @@ export const DashboardFeed = ({ onOpenUpload }) => {
                 >
                   Stack Deck
                 </button>
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   type="button"
-                  onClick={handleShuffleCards}
+                  onClick={handleEnableShakeMotion}
                   disabled={isDeckShuffling}
-                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-xs font-bold shadow-md cursor-pointer transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
-                  title="Re-order and shuffle cards randomly"
+                  className={`px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-xs font-bold shadow-md cursor-pointer transition-all flex items-center gap-1.5 ${
+                    isShaking ? 'ring-2 ring-amber-300 animate-pulse' : ''
+                  }`}
+                  title="Shake your phone to shuffle cards, or tap to trigger shake!"
                 >
-                  <RotateCcw className={`w-3.5 h-3.5 ${isDeckShuffling ? 'animate-spin' : ''}`} />
-                  <span>Shuffle</span>
-                </button>
+                  <Smartphone className={`w-3.5 h-3.5 ${isShaking ? 'animate-bounce' : ''}`} />
+                  <span>{isMobile ? 'Shake 📳' : 'Shake & Shuffle'}</span>
+                </motion.button>
               </div>
             </motion.div>
 
-            {/* The 3D Interactive Card Deck Stage */}
-            <div className="relative w-full h-[520px] sm:h-[560px] md:h-[600px] flex items-center justify-center overflow-visible my-2">
+            {/* Shake Detection Toast Popup */}
+            <AnimatePresence>
+              {shakeToast && (
+                <motion.div
+                  initial={{ opacity: 0, y: -25, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                  transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+                  className="fixed top-20 left-1/2 -translate-x-1/2 z-[999999] px-5 py-2.5 rounded-full bg-gradient-to-r from-rose-600 via-pink-600 to-amber-500 text-white text-xs font-bold shadow-2xl flex items-center gap-2 border border-white/30 backdrop-blur-md pointer-events-none"
+                >
+                  <Smartphone className="w-4 h-4 animate-bounce text-amber-200" />
+                  <span>📳 Phone Shaken! Cards Shuffled with Love 💕</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* The 3D Interactive Card Deck Stage with Framer Motion Shake wobble */}
+            <motion.div
+              animate={isShaking ? {
+                x: [-12, 12, -9, 9, -5, 5, 0],
+                rotate: [-2.5, 2.5, -1.8, 1.8, -0.8, 0.8, 0],
+                transition: { duration: 0.38, ease: 'easeInOut' },
+              } : {}}
+              className="relative w-full h-[520px] sm:h-[560px] md:h-[600px] flex items-center justify-center overflow-visible my-2"
+            >
               {(shuffledIndices && shuffledIndices.length === filteredMemories.length
                 ? shuffledIndices.map((i) => filteredMemories[i])
                 : filteredMemories
@@ -850,7 +965,7 @@ export const DashboardFeed = ({ onOpenUpload }) => {
                   />
                 );
               })}
-            </div>
+            </motion.div>
           </div>
         ) : /* ======================================================= */
         /* 1. ROMANTIC MODERN GRID LAYOUT */
