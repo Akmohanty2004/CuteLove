@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { UploadCloud, Image, Video, Eye, EyeOff, X, Check, AlertCircle, Trash2 } from 'lucide-react';
 import { useMemories } from '../hooks/useMemories';
 
@@ -63,8 +64,8 @@ export const MemoryUploader = ({ isOpen, onClose }) => {
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-md">
+  const modalContent = (
+    <div className="fixed inset-0 z-[999500] flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-md select-none">
       <div className="relative w-full max-w-lg max-h-[92dvh] overflow-y-auto glass-modal rounded-3xl p-5 sm:p-7 shadow-2xl border border-white/80 animate-in fade-in zoom-in-95 duration-200">
         
         {/* Close Button */}
@@ -222,4 +223,6 @@ export const MemoryUploader = ({ isOpen, onClose }) => {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 };

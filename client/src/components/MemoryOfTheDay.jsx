@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Calendar, Camera, X } from 'lucide-react';
 import { useMemories } from '../hooks/useMemories';
@@ -77,50 +78,53 @@ export const MemoryOfTheDay = () => {
         </div>
       </div>
 
-      {/* Lightbox for Flashback Photo with Framer Motion Spring */}
-      <AnimatePresence>
-        {selectedPhoto && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedPhoto(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"
-          >
+      {/* Lightbox for Flashback Photo with Framer Motion Spring (Portaled to document.body) */}
+      {typeof document !== 'undefined' &&
+        selectedPhoto &&
+        createPortal(
+          <AnimatePresence>
             <motion.div
-              initial={{ scale: 0.88, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.88, opacity: 0, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative max-w-3xl max-h-[90vh] w-full flex flex-col items-center justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedPhoto(null)}
+              className="fixed inset-0 z-[999000] flex items-center justify-center p-4 bg-black/92 backdrop-blur-xl select-none"
             >
-              <motion.button
-                whileHover={{ scale: 1.15, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setSelectedPhoto(null)}
-                className="absolute -top-12 right-0 p-2 text-white hover:text-rose-400 cursor-pointer transition-colors"
+              <motion.div
+                initial={{ scale: 0.88, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.88, opacity: 0, y: 20 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative max-w-3xl max-h-[90vh] w-full flex flex-col items-center justify-center"
               >
-                <X className="w-7 h-7" />
-              </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.15, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setSelectedPhoto(null)}
+                  className="absolute -top-12 right-0 p-2 text-white hover:text-rose-400 cursor-pointer transition-colors"
+                >
+                  <X className="w-7 h-7" />
+                </motion.button>
 
-              <div className={`overflow-hidden max-h-[75vh] bg-black shadow-2xl ${theme.imageShape} border border-white/20`}>
-                <img
-                  src={selectedPhoto.url}
-                  alt={selectedPhoto.caption}
-                  className={`max-h-[75vh] w-auto object-contain ${theme.imgFilter}`}
-                />
-              </div>
-
-              {selectedPhoto.caption && (
-                <div className="mt-3 text-center px-4 max-w-xl text-rose-100 text-sm font-serif italic">
-                  "{selectedPhoto.caption}"
+                <div className={`overflow-hidden max-h-[75vh] bg-black shadow-2xl ${theme.imageShape} border border-white/20`}>
+                  <img
+                    src={selectedPhoto.url}
+                    alt={selectedPhoto.caption}
+                    className={`max-h-[75vh] w-auto object-contain ${theme.imgFilter}`}
+                  />
                 </div>
-              )}
+
+                {selectedPhoto.caption && (
+                  <div className="mt-3 text-center px-4 max-w-xl text-rose-100 text-sm font-serif italic">
+                    "{selectedPhoto.caption}"
+                  </div>
+                )}
+              </motion.div>
             </motion.div>
-          </motion.div>
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>
     </>
   );
 };

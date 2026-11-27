@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
@@ -1098,334 +1099,344 @@ export const RomanticMorphingGallery = () => {
       )}
 
       {/* ======================================================== */}
-      {/* ADD IMAGE TO 3D UNIVERSE MODAL */}
+      {/* ADD NEW IMAGE MODAL (Portaled to document.body) */}
       {/* ======================================================== */}
-      <AnimatePresence>
-        {isAddModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={handleCloseAddModal}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
-          >
+      {typeof document !== 'undefined' &&
+        isAddModalOpen &&
+        createPortal(
+          <AnimatePresence>
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-lg bg-slate-900 border border-white/20 rounded-3xl p-5 sm:p-7 shadow-2xl text-white max-h-[90vh] overflow-y-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleCloseAddModal}
+              className="fixed inset-0 z-[999500] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md select-none"
             >
-              {/* Close Button */}
-              <button
-                onClick={handleCloseAddModal}
-                className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 15 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 15 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-md bg-slate-900/95 border border-white/20 rounded-3xl p-6 shadow-2xl text-white"
               >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <Sparkles className="w-4 h-4 text-amber-300" />
-                  <h3 className="text-lg sm:text-xl font-serif font-bold text-white">
-                    Add Memory to 3D Universe
-                  </h3>
-                </div>
-                <p className="text-xs text-slate-300">
-                  Add photos that smoothly join Laila &amp; Majnu's revolving constellation.
-                </p>
-              </div>
-
-              {/* Mode Switcher: Upload File vs Image URL */}
-              <div className="flex items-center gap-2 p-1 bg-white/10 rounded-xl mb-4 text-xs font-bold">
-                <button
-                  type="button"
-                  onClick={() => setAddMode('file')}
-                  className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-colors ${
-                    addMode === 'file'
-                      ? 'bg-rose-500 text-white shadow-sm'
-                      : 'text-slate-300 hover:text-white'
-                  }`}
-                >
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>Upload File</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAddMode('url')}
-                  className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-colors ${
-                    addMode === 'url'
-                      ? 'bg-rose-500 text-white shadow-sm'
-                      : 'text-slate-300 hover:text-white'
-                  }`}
-                >
-                  <LinkIcon className="w-3.5 h-3.5" />
-                  <span>Image URL</span>
-                </button>
-              </div>
-
-              {addFeedback && (
-                <div className="mb-4 p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-200 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{addFeedback}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleAddImageSubmit} className="space-y-4">
-                {/* File Upload Mode */}
-                {addMode === 'file' ? (
-                  <div>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileSelect}
-                      accept="image/*"
-                      className="hidden"
-                    />
-                    <div
-                      onClick={() => fileInputRef.current?.click()}
-                      className="group cursor-pointer border-2 border-dashed border-rose-400/40 hover:border-rose-400 rounded-2xl p-4 flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 transition-all min-h-[140px]"
-                    >
-                      {newImagePreview ? (
-                        <div className="relative w-full max-h-48 overflow-hidden rounded-xl">
-                          <img
-                            src={newImagePreview}
-                            alt="Preview"
-                            className="w-full h-40 object-cover rounded-xl"
-                          />
-                          <span className="absolute bottom-2 right-2 text-[10px] bg-black/70 px-2 py-0.5 rounded-full text-white">
-                            Tap to change
-                          </span>
-                        </div>
-                      ) : (
-                        <>
-                          <ImageIcon className="w-8 h-8 text-rose-400 mb-2 group-hover:scale-110 transition-transform" />
-                          <p className="text-xs font-semibold text-slate-200">
-                            Click to browse photo from device
-                          </p>
-                          <span className="text-[10px] text-slate-400 mt-0.5">
-                            PNG, JPG, WEBP, GIF
-                          </span>
-                        </>
-                      )}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center text-white">
+                      <Plus className="w-4 h-4 stroke-[3]" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-serif font-bold text-white">
+                        Add to Living Universe
+                      </h3>
+                      <p className="text-[11px] text-slate-400">
+                        Add a new memory to orbit in our 3D space
+                      </p>
                     </div>
                   </div>
-                ) : (
-                  /* URL Input Mode */
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
-                      Direct Image Web Link (URL)
-                    </label>
-                    <input
-                      type="url"
-                      value={newImageUrl}
-                      onChange={(e) => setNewImageUrl(e.target.value)}
-                      placeholder="https://images.unsplash.com/... or any photo link"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 text-xs focus:outline-hidden focus:border-rose-400"
-                    />
-                    {newImageUrl && (
-                      <div className="mt-2 rounded-xl overflow-hidden max-h-32 border border-white/20">
-                        <img
-                          src={newImageUrl}
-                          alt="URL Preview"
-                          className="w-full h-32 object-cover"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    )}
+                  <button
+                    onClick={handleCloseAddModal}
+                    className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-white/10"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Mode Switcher: Device File or URL */}
+                <div className="flex items-center gap-1 bg-white/10 p-1 rounded-xl mb-4 text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setAddMode('file')}
+                    className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-colors ${
+                      addMode === 'file'
+                        ? 'bg-rose-500 text-white shadow-sm'
+                        : 'text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Upload File</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAddMode('url')}
+                    className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-colors ${
+                      addMode === 'url'
+                        ? 'bg-rose-500 text-white shadow-sm'
+                        : 'text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    <LinkIcon className="w-3.5 h-3.5" />
+                    <span>Image URL</span>
+                  </button>
+                </div>
+
+                {addFeedback && (
+                  <div className="mb-4 p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-200 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{addFeedback}</span>
                   </div>
                 )}
 
-                {/* Romantic Caption */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Romantic Caption / Memory Note
-                  </label>
-                  <input
-                    type="text"
-                    value={newCaption}
-                    onChange={(e) => setNewCaption(e.target.value)}
-                    placeholder="e.g. Under the stars with my favorite person ❤️"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 text-xs focus:outline-hidden focus:border-rose-400"
+                <form onSubmit={handleAddImageSubmit} className="space-y-4">
+                  {/* File Upload Mode */}
+                  {addMode === 'file' ? (
+                    <div>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileSelect}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <div
+                        onClick={() => fileInputRef.current?.click()}
+                        className="group cursor-pointer border-2 border-dashed border-rose-400/40 hover:border-rose-400 rounded-2xl p-4 flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 transition-all min-h-[140px]"
+                      >
+                        {newImagePreview ? (
+                          <div className="relative w-full max-h-48 overflow-hidden rounded-xl">
+                            <img
+                              src={newImagePreview}
+                              alt="Preview"
+                              className="w-full h-40 object-cover rounded-xl"
+                            />
+                            <span className="absolute bottom-2 right-2 text-[10px] bg-black/70 px-2 py-0.5 rounded-full text-white">
+                              Tap to change
+                            </span>
+                          </div>
+                        ) : (
+                          <>
+                            <ImageIcon className="w-8 h-8 text-rose-400 mb-2 group-hover:scale-110 transition-transform" />
+                            <p className="text-xs font-semibold text-slate-200">
+                              Click to browse photo from device
+                            </p>
+                            <span className="text-[10px] text-slate-400 mt-0.5">
+                              PNG, JPG, WEBP, GIF
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    /* URL Input Mode */
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        Direct Image Web Link (URL)
+                      </label>
+                      <input
+                        type="url"
+                        value={newImageUrl}
+                        onChange={(e) => setNewImageUrl(e.target.value)}
+                        placeholder="https://images.unsplash.com/... or any photo link"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 text-xs focus:outline-hidden focus:border-rose-400"
+                      />
+                      {newImageUrl && (
+                        <div className="mt-2 rounded-xl overflow-hidden max-h-32 border border-white/20">
+                          <img
+                            src={newImageUrl}
+                            alt="URL Preview"
+                            className="w-full h-32 object-cover"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Romantic Caption */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Romantic Caption / Memory Note
+                    </label>
+                    <input
+                      type="text"
+                      value={newCaption}
+                      onChange={(e) => setNewCaption(e.target.value)}
+                      placeholder="e.g. Under the stars with my favorite person ❤️"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 text-xs focus:outline-hidden focus:border-rose-400"
+                    />
+                  </div>
+
+                  {/* Uploader Name */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-slate-300 font-semibold">Added by:</span>
+                    <div className="flex items-center gap-2">
+                      {['Majnu', 'Laila'].map((name) => (
+                        <button
+                          key={name}
+                          type="button"
+                          onClick={() => setNewUploader(name)}
+                          className={`px-3 py-1 rounded-full text-xs font-bold cursor-pointer transition-all ${
+                            newUploader === name
+                              ? 'bg-rose-500 text-white shadow-xs'
+                              : 'bg-white/10 text-slate-300 hover:text-white'
+                          }`}
+                        >
+                          {name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="pt-2 flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={handleCloseAddModal}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <motion.button
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      type="submit"
+                      disabled={isUploading}
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-xs shadow-lg shadow-teal-500/30 cursor-pointer flex items-center gap-1.5"
+                    >
+                      {isUploading ? (
+                        <>
+                          <RotateCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>Adding...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Add to Universe</span>
+                        </>
+                      )}
+                    </motion.button>
+                  </div>
+                </form>
+              </motion.div>
+            </motion.div>
+          </AnimatePresence>,
+          document.body
+        )}
+
+      {/* ======================================================== */}
+      {/* ROMANTIC FULL-SCREEN LIGHTBOX MODAL (Portaled to document.body) */}
+      {/* ======================================================== */}
+      {typeof document !== 'undefined' &&
+        selectedImage &&
+        createPortal(
+          <AnimatePresence>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedImage(null)}
+              className="fixed inset-0 z-[999000] flex items-center justify-center p-4 bg-black/92 backdrop-blur-xl select-none"
+            >
+              <motion.div
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.85, opacity: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative max-w-4xl max-h-[92vh] w-full flex flex-col items-center justify-center"
+              >
+                {/* Top Controls: Remove and Close */}
+                <div className="w-full flex items-center justify-between mb-3 px-2">
+                  <button
+                    onClick={() => {
+                      setImageToDelete(selectedImage);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600/80 hover:bg-rose-600 text-white text-xs font-bold cursor-pointer transition-colors shadow-md"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Remove Image</span>
+                  </button>
+
+                  <motion.button
+                    whileHover={{ scale: 1.2, rotate: 90 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setSelectedImage(null)}
+                    className="p-2 text-white hover:text-rose-400 cursor-pointer"
+                  >
+                    <X className="w-7 h-7" />
+                  </motion.button>
+                </div>
+
+                {/* Lightbox Image Container */}
+                <div className="rounded-3xl overflow-hidden max-h-[72vh] bg-black shadow-2xl border-2 border-white/20">
+                  <img
+                    src={selectedImage.url}
+                    alt={selectedImage.caption || 'Memory'}
+                    className="max-h-[72vh] w-auto object-contain"
                   />
                 </div>
 
-                {/* Uploader Name */}
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-slate-300 font-semibold">Added by:</span>
-                  <div className="flex items-center gap-2">
-                    {['Majnu', 'Laila'].map((name) => (
-                      <button
-                        key={name}
-                        type="button"
-                        onClick={() => setNewUploader(name)}
-                        className={`px-3 py-1 rounded-full text-xs font-bold cursor-pointer transition-all ${
-                          newUploader === name
-                            ? 'bg-rose-500 text-white shadow-xs'
-                            : 'bg-white/10 text-slate-300 hover:text-white'
-                        }`}
-                      >
-                        {name}
-                      </button>
-                    ))}
+                {/* Caption & Metadata */}
+                {selectedImage.caption && (
+                  <div className="mt-4 text-center px-4 max-w-xl">
+                    <p className="text-rose-100 text-sm sm:text-base font-serif italic">
+                      "{selectedImage.caption}"
+                    </p>
+                    <p className="text-xs text-rose-300/80 mt-1">
+                      Captured by {selectedImage.uploaderName} • Laila &amp; Majnu Love Universe
+                    </p>
                   </div>
-                </div>
+                )}
+              </motion.div>
+            </motion.div>
+          </AnimatePresence>,
+          document.body
+        )}
 
-                {/* Submit Button */}
-                <div className="pt-2 flex items-center justify-end gap-2">
+      {/* ======================================================== */}
+      {/* CONFIRM DELETE / REMOVE IMAGE MODAL (Portaled to document.body on top of everything) */}
+      {/* ======================================================== */}
+      {typeof document !== 'undefined' &&
+        imageToDelete &&
+        createPortal(
+          <AnimatePresence>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setImageToDelete(null)}
+              className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md select-none"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-sm bg-slate-900 border border-rose-500/30 rounded-3xl p-6 shadow-2xl text-white text-center"
+              >
+                <div className="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-3">
+                  <Trash2 className="w-6 h-6" />
+                </div>
+                <h3 className="text-base font-serif font-bold text-white mb-1">
+                  Remove Memory from Universe?
+                </h3>
+                <p className="text-xs text-slate-300 mb-4 font-serif italic">
+                  "{imageToDelete.caption || 'This cherished memory'}"
+                </p>
+                
+                <div className="flex items-center justify-center gap-3">
                   <button
                     type="button"
-                    onClick={handleCloseAddModal}
+                    onClick={() => setImageToDelete(null)}
                     className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 cursor-pointer"
                   >
-                    Cancel
+                    Keep in Universe
                   </button>
-                  <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    type="submit"
-                    disabled={isUploading}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-xs shadow-lg shadow-teal-500/30 cursor-pointer flex items-center gap-1.5"
+                  <button
+                    type="button"
+                    onClick={handleConfirmDelete}
+                    className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5"
                   >
-                    {isUploading ? (
-                      <>
-                        <RotateCw className="w-3.5 h-3.5 animate-spin" />
-                        <span>Adding...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>Add to Universe</span>
-                      </>
-                    )}
-                  </motion.button>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Yes, Remove</span>
+                  </button>
                 </div>
-              </form>
+              </motion.div>
             </motion.div>
-          </motion.div>
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>
-
-      {/* ======================================================== */}
-      {/* CONFIRM DELETE / REMOVE IMAGE MODAL */}
-      {/* ======================================================== */}
-      <AnimatePresence>
-        {imageToDelete && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setImageToDelete(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-sm bg-slate-900 border border-rose-500/30 rounded-3xl p-6 shadow-2xl text-white text-center"
-            >
-              <div className="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-3">
-                <Trash2 className="w-6 h-6" />
-              </div>
-              <h3 className="text-base font-serif font-bold text-white mb-1">
-                Remove Memory from Universe?
-              </h3>
-              <p className="text-xs text-slate-300 mb-4 font-serif italic">
-                "{imageToDelete.caption || 'This cherished memory'}"
-              </p>
-              
-              <div className="flex items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setImageToDelete(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 cursor-pointer"
-                >
-                  Keep in Universe
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmDelete}
-                  className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Yes, Remove</span>
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ======================================================== */}
-      {/* ROMANTIC FULL-SCREEN LIGHTBOX MODAL */}
-      {/* ======================================================== */}
-      <AnimatePresence>
-        {selectedImage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedImage(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/92 backdrop-blur-xl"
-          >
-            <motion.div
-              initial={{ scale: 0.85, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.85, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative max-w-4xl max-h-[92vh] w-full flex flex-col items-center justify-center"
-            >
-              {/* Top Controls: Remove and Close */}
-              <div className="w-full flex items-center justify-between mb-3 px-2">
-                <button
-                  onClick={() => {
-                    setImageToDelete(selectedImage);
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600/80 hover:bg-rose-600 text-white text-xs font-bold cursor-pointer transition-colors shadow-md"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Remove Image</span>
-                </button>
-
-                <motion.button
-                  whileHover={{ scale: 1.2, rotate: 90 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => setSelectedImage(null)}
-                  className="p-2 text-white hover:text-rose-400 cursor-pointer"
-                >
-                  <X className="w-7 h-7" />
-                </motion.button>
-              </div>
-
-              {/* Lightbox Image Container */}
-              <div className="rounded-3xl overflow-hidden max-h-[72vh] bg-black shadow-2xl border-2 border-white/20">
-                <img
-                  src={selectedImage.url}
-                  alt={selectedImage.caption || 'Memory'}
-                  className="max-h-[72vh] w-auto object-contain"
-                />
-              </div>
-
-              {/* Caption & Metadata */}
-              {selectedImage.caption && (
-                <div className="mt-4 text-center px-4 max-w-xl">
-                  <p className="text-rose-100 text-sm sm:text-base font-serif italic">
-                    "{selectedImage.caption}"
-                  </p>
-                  <p className="text-xs text-rose-300/80 mt-1">
-                    Captured by {selectedImage.uploaderName} • Laila &amp; Majnu Love Universe
-                  </p>
-                </div>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </section>
   );
 };

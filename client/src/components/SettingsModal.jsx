@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Shield, Clock, LogOut, Check, X, RefreshCw, Sparkles, User, Cloud } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axiosClient';
@@ -46,8 +47,8 @@ export const SettingsModal = ({ isOpen, onClose }) => {
   const daysPassed = Math.max(0, 30 - (sessionDaysRemaining || 30));
   const progressPercent = Math.min(100, Math.round(((30 - sessionDaysRemaining) / 30) * 100));
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-md">
+  const modalContent = (
+    <div className="fixed inset-0 z-[999500] flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-md select-none">
       <div className="relative w-full max-w-md max-h-[92dvh] overflow-y-auto glass-modal rounded-3xl p-5 sm:p-6 shadow-2xl border border-white/80 animate-in fade-in zoom-in-95 duration-200">
         
         {/* Close Button */}
@@ -173,4 +174,6 @@ export const SettingsModal = ({ isOpen, onClose }) => {
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 };
