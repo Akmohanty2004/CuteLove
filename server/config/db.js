@@ -100,10 +100,13 @@ export const seedInitialData = async () => {
     const ashisPasswordHash = await bcrypt.hash(ashisPasswordRaw, 10);
     const kirtiPasswordHash = await bcrypt.hash(kirtiPasswordRaw, 10);
 
+    let newAshis = ashis;
+    let newKirti = kirti;
+
     if (!ashis || !kirti) {
       console.log('🌱 Seeding exclusive couple users: Laila & Majnu...');
 
-      const newAshis = await User.findOneAndUpdate(
+      newAshis = await User.findOneAndUpdate(
         { username: 'ashis' },
         {
           username: 'ashis',
@@ -116,17 +119,8 @@ export const seedInitialData = async () => {
         },
         { upsert: true, new: true }
       );
-    } else {
-      // Ensure display names are updated to Majnu and Laila
-      await User.updateMany({ username: { $in: ['ashis', 'majnu'] } }, { displayName: 'Majnu' });
-      await User.updateMany({ username: { $in: ['kirti', 'laila'] } }, { displayName: 'Laila' });
-    }
 
-    // Update existing memories uploaderName to Majnu & Laila
-    await Memory.updateMany({ uploaderName: 'Ashis' }, { uploaderName: 'Majnu' });
-    await Memory.updateMany({ uploaderName: 'Kirti' }, { uploaderName: 'Laila' });
-
-      const newKirti = await User.findOneAndUpdate(
+      newKirti = await User.findOneAndUpdate(
         { username: 'kirti' },
         {
           username: 'kirti',
@@ -139,15 +133,6 @@ export const seedInitialData = async () => {
         },
         { upsert: true, new: true }
       );
-    } else {
-      // Ensure display names are updated to Majnu and Laila
-      await User.updateMany({ username: { $in: ['ashis', 'majnu'] } }, { displayName: 'Majnu' });
-      await User.updateMany({ username: { $in: ['kirti', 'laila'] } }, { displayName: 'Laila' });
-    }
-
-    // Update existing memories uploaderName to Majnu & Laila
-    await Memory.updateMany({ uploaderName: 'Ashis' }, { uploaderName: 'Majnu' });
-    await Memory.updateMany({ uploaderName: 'Kirti' }, { uploaderName: 'Laila' });
 
       // Seed initial mood logs
       const moodLogsCount = await MoodLog.countDocuments();
@@ -160,7 +145,7 @@ export const seedInitialData = async () => {
           { user: newAshis._id, username: 'ashis', mood: 'happy', note: 'Got your sweet message!', createdAt: new Date(now - 12 * hour) },
           { user: newKirti._id, username: 'kirti', mood: 'happy', note: 'Can not wait to see you', createdAt: new Date(now - 8 * hour) },
           { user: newAshis._id, username: 'ashis', mood: 'normal', note: 'Evening walk', createdAt: new Date(now - 4 * hour) },
-          { user: newKirti._id, username: 'kirti', mood: 'happy', note: 'Talking with Ashis', createdAt: new Date(now - 1 * hour) },
+          { user: newKirti._id, username: 'kirti', mood: 'happy', note: 'Talking with Majnu', createdAt: new Date(now - 1 * hour) },
         ]);
       }
 
@@ -170,9 +155,9 @@ export const seedInitialData = async () => {
         await Memory.insertMany([
           {
             uploader: newAshis._id,
-            uploaderName: 'Ashis',
+            uploaderName: 'Majnu',
             mediaType: 'image',
-            url: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=1200&q=80',
+            url: 'https://upload.wikimedia.org/wikipedia/commons/a/a7/Ranbir_Kapoor_and_Alia_Bhatt.jpg',
             publicId: 'seed_memory_1',
             caption: 'Our sunset walk by the shore. The golden sky had nothing on your smile.',
             isVisibleOnDashboard: true,
@@ -180,9 +165,9 @@ export const seedInitialData = async () => {
           },
           {
             uploader: newKirti._id,
-            uploaderName: 'Kirti',
+            uploaderName: 'Laila',
             mediaType: 'image',
-            url: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=1200&q=80',
+            url: 'https://upload.wikimedia.org/wikipedia/commons/0/03/Deepika_Padukone_and_Ranveer_Singh_reception.jpg',
             publicId: 'seed_memory_2',
             caption: 'Cozy coffee dates and endless conversations about our dreams.',
             isVisibleOnDashboard: true,
@@ -190,9 +175,9 @@ export const seedInitialData = async () => {
           },
           {
             uploader: newAshis._id,
-            uploaderName: 'Ashis',
+            uploaderName: 'Majnu',
             mediaType: 'image',
-            url: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=1200&q=80',
+            url: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/Shah_Rukh_Khan_and_Kajol.jpg',
             publicId: 'seed_memory_3',
             caption: 'Holding hands under the fairy lights. A night I will never forget.',
             isVisibleOnDashboard: true,
@@ -200,9 +185,9 @@ export const seedInitialData = async () => {
           },
           {
             uploader: newKirti._id,
-            uploaderName: 'Kirti',
+            uploaderName: 'Laila',
             mediaType: 'image',
-            url: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=1200&q=80',
+            url: 'https://upload.wikimedia.org/wikipedia/commons/3/35/Sidharth_Malhotra_and_Kiara_Advani_at_their_wedding_reception_in_Mumbai_%2812%29.jpg',
             publicId: 'seed_memory_4',
             caption: 'That rainy afternoon spent listening to our favorite songs.',
             isVisibleOnDashboard: true,
@@ -210,9 +195,9 @@ export const seedInitialData = async () => {
           },
           {
             uploader: newAshis._id,
-            uploaderName: 'Ashis',
+            uploaderName: 'Majnu',
             mediaType: 'image',
-            url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=1200&q=80',
+            url: 'https://upload.wikimedia.org/wikipedia/commons/3/3c/Saif_%26_Kareena.jpg',
             publicId: 'seed_memory_5',
             caption: 'Private Vault Memory: Our secret stargazing trip. Kept safely in our private vault.',
             isVisibleOnDashboard: false,
@@ -226,32 +211,40 @@ export const seedInitialData = async () => {
       if (noteCount === 0) {
         await Note.create({
           sender: newAshis._id,
-          senderName: 'Ashis',
+          senderName: 'Majnu',
           content: 'I left your favorite chocolates in the fridge! Have an amazing day my love ❤️',
           color: 'rose',
           isPinned: true,
         });
       }
 
-      console.log('✅ Seed completed: Ashis and Kirti initialized.');
+      console.log('✅ Seed completed: Laila and Majnu initialized.');
     } else {
+      // Ensure display names are updated to Majnu and Laila
+      await User.updateMany({ username: { $in: ['ashis', 'majnu'] } }, { displayName: 'Majnu' });
+      await User.updateMany({ username: { $in: ['kirti', 'laila'] } }, { displayName: 'Laila' });
+
       // Synchronize passwords if changed in .env
       const ashisMatches = await bcrypt.compare(ashisPasswordRaw, ashis.password);
       if (!ashisMatches) {
-        console.log("🔄 Updating Ashis's password from environment variables...");
+        console.log("🔄 Updating Majnu's password from environment variables...");
         ashis.password = await bcrypt.hash(ashisPasswordRaw, 10);
         await ashis.save();
-        console.log("✅ Ashis's password successfully updated in MongoDB Atlas.");
+        console.log("✅ Majnu's password successfully updated in MongoDB Atlas.");
       }
 
       const kirtiMatches = await bcrypt.compare(kirtiPasswordRaw, kirti.password);
       if (!kirtiMatches) {
-        console.log("🔄 Updating Kirti's password from environment variables...");
+        console.log("🔄 Updating Laila's password from environment variables...");
         kirti.password = await bcrypt.hash(kirtiPasswordRaw, 10);
         await kirti.save();
-        console.log("✅ Kirti's password successfully updated in MongoDB Atlas.");
+        console.log("✅ Laila's password successfully updated in MongoDB Atlas.");
       }
     }
+
+    // Update existing memories uploaderName to Majnu & Laila
+    await Memory.updateMany({ uploaderName: 'Ashis' }, { uploaderName: 'Majnu' });
+    await Memory.updateMany({ uploaderName: 'Kirti' }, { uploaderName: 'Laila' });
   } catch (error) {
     console.error('Error seeding data:', error);
   }
